@@ -1,0 +1,18 @@
+services:
+  backend:
+    build:
+      context: '.'
+      dockerfile: ./Dockerfile.dev
+    container_name: sms-frontend-dev-container
+    networks:
+      - sms-app-dev-network
+    volumes:
+      - ./:/app
+    env_file:
+      - C:/Users/91987/Desktop/personal/SMS/SECRET/.env
+    environment:
+      - BACKEND_PORT=${BACKEND_PORT}
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+networks:
+  sms-app-dev-network:
