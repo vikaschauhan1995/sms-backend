@@ -8,6 +8,7 @@ const db = require('./db');
 
 const authRouter = require('./routes/auth');
 const schoolRouter = require('./routes/school');
+const tokenValidation = require('./middleware/tokenValidation');
 
 const PORT = process.env.BACKEND_PORT;
 
@@ -15,6 +16,7 @@ app.use(bodyParser.json());
 
 app.use((req, res, next) => {
   console.log(req.path, req.method);
+  // tokenValidation(req, res, next);
   next();
 });
 
