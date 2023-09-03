@@ -25,19 +25,15 @@ CREATE TABLE school (
 CREATE TABLE users (
   id serial PRIMARY KEY,
 	user_id VARCHAR ( 255 ) UNIQUE NOT NULL,
-  school_id VARCHAR ( 255 ) UNIQUE NOT NULL,
+  school_id VARCHAR ( 255 ) NOT NULL,
 	email VARCHAR ( 255 ) UNIQUE NOT NULL,
 	username VARCHAR ( 255 ) UNIQUE NOT NULL,
 	password VARCHAR ( 255 ) NOT NULL,
+  user_type VARCHAR (25 ) NOT NULL,
 	created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_login TIMESTAMP
 );
 
-CREATE TABLE user_type (
-  id serial PRIMARY KEY,
-  user_id VARCHAR (255) UNIQUE NOT NULL,
-  type VARCHAR (25)
-);
 
 -- Commit the transaction
 COMMIT;
