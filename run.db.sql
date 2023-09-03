@@ -7,15 +7,36 @@ CREATE DATABASE sms_dev;
 -- Connect to the new database
 \c sms_dev;
 
--- Create a new table
+-- Create new tables
+CREATE TABLE school (
+  id serial NOT NULL,
+  school_id VARCHAR (255) UNIQUE NOT NULL,
+  school_name VARCHAR (255) NOT NULL,
+  mobile_number BIGINT NOT NULL,
+  address1 VARCHAR (255) NOT NULL,
+  address2 VARCHAR (255) NOT NULL,
+  state VARCHAR (55) NOT NULL,
+  pincode INT NOT NULL,
+  country VARCHAR (55) NOT NULL,
+  expiration_date DATE,
+  created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE users (
-    id serial PRIMARY KEY,
+  id serial PRIMARY KEY,
 	user_id VARCHAR ( 255 ) UNIQUE NOT NULL,
+  school_id VARCHAR ( 255 ) UNIQUE NOT NULL,
+	email VARCHAR ( 255 ) UNIQUE NOT NULL,
 	username VARCHAR ( 255 ) UNIQUE NOT NULL,
 	password VARCHAR ( 255 ) NOT NULL,
-	email VARCHAR ( 255 ) UNIQUE NOT NULL,
-	created_on TIMESTAMP NOT NULL,
-    last_login TIMESTAMP 
+	created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_login TIMESTAMP
+);
+
+CREATE TABLE user_type (
+  id serial PRIMARY KEY,
+  user_id VARCHAR (255) UNIQUE NOT NULL,
+  type VARCHAR (25)
 );
 
 -- Commit the transaction
