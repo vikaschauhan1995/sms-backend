@@ -5,6 +5,7 @@ const users_table = {
   USERNAME: 'username',
   PASSWORD: 'password',
   USER_TYPE: 'user_type',
+  IS_ACTIVE: 'is_active',
   CREATED_ON: 'created_on',
   LAST_LOGIN: 'last_login',
 };

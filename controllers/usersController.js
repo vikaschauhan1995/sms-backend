@@ -2,6 +2,18 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const users = require('../constants/users_table');
 const db = require('../db.js')
+const nodeMailer = require('nodemailer');
+const { createToken } = require('./authController');
+
+const generatePasswordMail = async (email, user_id) => {
+  try {
+    const token = createToken(user_id);
+    // send this token to mail with url looks like 12.122.43.55:8010/generate_password/${token}
+    console.log(`/generate_password/${token}`);
+  } catch (error) {
+    console.log("Error: " + error.message);
+  }
+}
 
 const getUsersBySchool = async (req, res) => {
   const { school_id } = req.params;
@@ -15,10 +27,10 @@ const getUsersBySchool = async (req, res) => {
 }
 
 const createUser = async (req, res) => {
-  const { username, email, password, type } = req.body;
+  const { username, email, type } = req.body;
   const { school_id } = req.params;
   try {
-    if (!username || !email || !password) {
+    if (!username || !email) {
       throw Error('All fields must be filled');
     }
     if (!school_id) {
@@ -30,12 +42,13 @@ const createUser = async (req, res) => {
       throw Error(`${username} is already in use`);
     }
     if (oldUser.rows.length === 0) {
-      const query = `INSERT INTO users (${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.PASSWORD}, ${users.USER_TYPE}) VALUES($1, $2, $3, $4, $5, $6)`;
+      const query = `INSERT INTO users (${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.PASSWORD}, ${users.USER_TYPE}, ${users.IS_ACTIVE}) VALUES($1, $2, $3, $4, $5, $6, $7)`;
       const user_id = uuidv4();
-      const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash(password, salt);
-      await db.query(query, [user_id, school_id, email, username, hash, type]);
-      res.status(200).json({ user_id, hash });
+      // const salt = await bcrypt.genSalt(10);
+      // const hash = await bcrypt.hash(password, salt);
+      await generatePasswordMail(email, user_id);
+      await db.query(query, [user_id, school_id, email, username, "OOPS", type, false]);
+      res.status(200).json({ user_id });
     }
   } catch (err) {
     res.status(400).json({ error: err.message });

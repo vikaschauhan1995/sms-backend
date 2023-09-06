@@ -5,7 +5,6 @@ const db = require('../db');
 
 const users = require('../constants/users_table');
 
-
 const createToken = (user_id) => {
   return jwt.sign({ user_id }, process.env.JWT_SECRET_KEY, { expiresIn: 60 * 60 });
 }
@@ -17,7 +16,7 @@ const loginUser = async (req, res) => {
     if (!username || !password) {
       throw Error('All fields must be filled');
     }
-    const query = `SELECT * FROM users WHERE ${users.USERNAME} = $1 OR ${users.EMAIL} = $2 LIMIT 1`;
+    const query = `SELECT * FROM users WHERE ${users.USERNAME} = $1 OR ${users.EMAIL} = $2 AND ${users.IS_ACTIVE} IS TRUE LIMIT 1`;
     const user = await db.query(query, [username, username]);
     if (user.rows.length === 0) {
       throw Error('Invalid username or password');
@@ -36,8 +35,21 @@ const loginUser = async (req, res) => {
   }
 }
 
+const generatePasswordForNewUser = async (req, res) => {
+  const { token, password, rePassword } = req.body;
+  try {
+    const decode = jwt.verify(token, "process.env.JWT_SECRET_KEY");
+    console.log("decode=>", decode);
+    res.status(200).json({ message: "yoyo" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+}
+
 
 
 module.exports = {
-  loginUser
+  loginUser,
+  generatePasswordForNewUser,
+  createToken
 };
