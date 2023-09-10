@@ -59,9 +59,9 @@ const generatePasswordForNewUser = async (req, res) => {
     if (!userObj?.rows[0]?.[users.USER_ID]) {
       throw Error("Couldn't find user_id");
     }
-    const updateQuery = `UPDATE users SET ${users?.PASSWORD} = $1, ${users?.IS_ACTIVE} = $2`;
+    const updateQuery = `UPDATE users SET ${users?.PASSWORD} = $1`;
     const deleteVerificationRowQuery = `DELETE FROM verification WHERE ${verification?.USER_ID} = $1`;
-    const updateUser = await db.query(updateQuery, [hash, true]);
+    const updateUser = await db.query(updateQuery, [hash]);
     await db.query(deleteVerificationRowQuery, [obj?.[users?.USER_ID]])
     res.status(200).json(updateUser?.rows);
 

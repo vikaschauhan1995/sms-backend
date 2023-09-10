@@ -5,28 +5,9 @@ const verification = require('../constants/verification_table');
 const db = require('../db.js')
 const nodeMailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
-const { createToken } = require('./authController');
+const generatePasswordMail = require('../methods/generatePasswordMail');
+const generateOTP = require('../methods/generateOTP');
 
-const generateOTP = (number) => {
-  let otp = "";
-  for (let x = 0; x < number; x++) {
-    const random = Math.floor(Math.random() * 10);
-    otp += random;
-  }
-  return parseInt(otp);
-}
-const createTokenForObject = (object) => {
-  return jwt.sign(object, process.env.JWT_SECRET_KEY, { expiresIn: 60 * 60 });
-}
-const generatePasswordMail = async (email, user_id, otp) => {
-  try {
-    const token = createTokenForObject({ user_id, otp });
-    // send this token to mail with url looks like 12.122.43.55:8010/generate_password/${token}
-    console.log(`/generate_password/${token}`);
-  } catch (error) {
-    console.log("Error: " + error.message);
-  }
-}
 
 const getUsersBySchool = async (req, res) => {
   const { school_id } = req.params;
@@ -39,31 +20,36 @@ const getUsersBySchool = async (req, res) => {
   }
 }
 
-const createUser = async (req, res) => {
+const createUser = async (username, email, type, school_id, old_user_id) => {
+  if (!username || !email) {
+    throw Error('All fields must be filled');
+  }
+  if (!school_id) {
+    throw Error('Please provide school_id');
+  }
+  const query = `SELECT * FROM users WHERE (${users.SCHOOL_ID} = $1 AND ${users.USERNAME} = $2) OR (${users.SCHOOL_ID} = $3 AND ${users.EMAIL} = $4)`;
+  const hasAlreadyUser = await db.query(query, [school_id, username, school_id, email]);
+  if (hasAlreadyUser.rows.length > 0) {
+    throw Error(`${username} is already in use`);
+  }
+  if (hasAlreadyUser.rows.length === 0) {
+    const query = `INSERT INTO users (${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.PASSWORD}, ${users.USER_TYPE}, ${users.IS_ACTIVE}) VALUES($1, $2, $3, $4, $5, $6, $7)`;
+    const generate_password_query = `INSERT INTO verification (${verification?.USER_ID}, ${verification?.PURPOSE}, ${verification?.OTP}) VALUES($1, $2, $3)`;
+    const otp = generateOTP(6);
+    const user_id = old_user_id ? old_user_id : uuidv4();
+    await db.query(generate_password_query, [user_id, "generate password", otp]);
+    await generatePasswordMail(email, user_id, otp);
+    await db.query(query, [user_id, school_id, email, username, "OOPS", type, false]);
+    return user_id;
+  }
+}
+
+const createUserRoute = async (req, res) => {
   const { username, email, type } = req.body;
   const { school_id } = req.params;
   try {
-    if (!username || !email) {
-      throw Error('All fields must be filled');
-    }
-    if (!school_id) {
-      throw Error('Please provide school_id');
-    }
-    const query = `SELECT * FROM users WHERE (${users.SCHOOL_ID} = $1 AND ${users.USERNAME} = $2) OR (${users.SCHOOL_ID} = $3 AND ${users.EMAIL} = $4)`;
-    const oldUser = await db.query(query, [school_id, username, school_id, email]);
-    if (oldUser.rows.length > 0) {
-      throw Error(`${username} is already in use`);
-    }
-    if (oldUser.rows.length === 0) {
-      const query = `INSERT INTO users (${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.PASSWORD}, ${users.USER_TYPE}, ${users.IS_ACTIVE}) VALUES($1, $2, $3, $4, $5, $6, $7)`;
-      const generate_password_query = `INSERT INTO verification (${verification?.USER_ID}, ${verification?.PURPOSE}, ${verification?.OTP}) VALUES($1, $2, $3)`;
-      const otp = generateOTP(6);
-      const user_id = uuidv4();
-      await db.query(generate_password_query, [user_id, "generate password", otp]);
-      await generatePasswordMail(email, user_id, otp);
-      await db.query(query, [user_id, school_id, email, username, "OOPS", type, false]);
-      res.status(200).json({ user_id });
-    }
+    const newUserId = await createUser(username, email, type, school_id);
+    res.status(200).json(newUserId);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -86,7 +72,6 @@ const getUser = async (req, res) => {
       throw Error(`${users.USER_ID} is not available`);
     }
     const query = `SELECT id, ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.CREATED_ON}, ${users.LAST_LOGIN} FROM users WHERE ${users.USER_ID} = $1`;
-    console.log("query=>", query);
     const user = await db.query(query, [user_id]);
     res.status(200).json(user.rows);
   } catch (err) {
@@ -134,6 +119,7 @@ const deleteUser = async (req, res) => {
 
 module.exports = {
   getUsersBySchool,
+  createUserRoute,
   createUser,
   getAllUsers,
   getUser,

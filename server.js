@@ -9,6 +9,7 @@ const db = require('./db');
 const authRouter = require('./routes/auth');
 const schoolRouter = require('./routes/school');
 const usersRouter = require('./routes/users');
+const teacherRouter = require('./routes/teacher');
 const tokenValidation = require('./middleware/tokenValidation');
 
 const PORT = process.env.BACKEND_PORT;
@@ -28,6 +29,7 @@ app.get('/', (req, res) => {
 app.use('/auth', authRouter);
 app.use('/school', schoolRouter);
 app.use('/users', usersRouter);
+app.use('/api/teacher', teacherRouter);
 
 db.connect().then(() => {
   app.listen(PORT, () => {

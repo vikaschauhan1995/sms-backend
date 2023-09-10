@@ -13,7 +13,7 @@ const createSchool = async (req, res) => {
     await db.query(query, [school_id, school_name, mobile_number, address1, address2, state, pincode, country, expiration_date]);
     res.status(200).json({ message: 'School added successfully' });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ error: err.message });
   }
 }
 
@@ -23,7 +23,7 @@ const getSchools = async (req, res) => {
     const schools = await db.query(query);
     res.status(200).json(schools.rows);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ error: err.message });
   }
 }
 
@@ -35,7 +35,7 @@ const getSchool = async (req, res) => {
     const schoolObj = await db.query(query, [school_id]);
     res.status(200).json(schoolObj.rows);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ error: err.message });
   }
 }
 
@@ -57,7 +57,7 @@ const updateSchool = async (req, res) => {
     const newSchool = await db.query(query, [school_name, mobile_number, address1, address2, state, pincode, country, expiration_date, school_id]);
     res.status(200).json(newSchool.rows);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ error: err.message });
   }
 }
 
@@ -68,7 +68,7 @@ const deleteSchool = async (req, res) => {
     const deletedSchool = await db.query(query, [school_id]);
     res.status(200).json(deletedSchool.rows);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ error: err.message });
   }
 }
 
