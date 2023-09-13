@@ -89,7 +89,7 @@ const updateTeacher = async (req, res) => {
     if (!user_id) {
       throw Error("Couldn't find the teacher's user id");
     }
-    console.log("first_name, last_name, class_, section, gender, dob, id_number, subject, religion, email, username, mobile_number, address,=>", first_name, last_name, class_, section, gender, dob, id_number, subject, religion, email, username, mobile_number, address,);
+    // console.log("first_name, last_name, class_, section, gender, dob, id_number, subject, religion, email, username, mobile_number, address,=>", first_name, last_name, class_, section, gender, dob, id_number, subject, religion, email, username, mobile_number, address,);
     if (!first_name || !last_name || !class_ || !section || !gender || !dob || !id_number || !subject || !religion || !email || !username || !mobile_number || !address) {
       throw Error("All fields must be filled");
     }
