@@ -29,7 +29,8 @@ const loginUser = async (req, res) => {
       }
       const user_ = user.rows[0];
       const token = createToken(user_?.[users?.USER_ID]);
-      res.status(200).json({ token: token });
+      delete user_?.[users?.PASSWORD];
+      res.status(200).json({ token, user: user_ });
     }
   } catch (error) {
     res.status(400).json({ error: error.message });

@@ -2,6 +2,7 @@ if (process.env.NODE_ENV === 'development') {
   require('dotenv').config({ path: '../SECRET/.dev.env' });
 }
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const app = express();
 const db = require('./db');
@@ -17,7 +18,9 @@ const tokenValidation = require('./middleware/tokenValidation');
 const PORT = process.env.BACKEND_PORT;
 
 app.use(bodyParser.json());
-
+app.use(cors({
+  origin: [`${process.env.FRONT_END_URL}`, `${process.env.USER_FRONT_END_URL}`]
+}));
 app.use((req, res, next) => {
   console.log(req.path, req.method);
   // tokenValidation(req, res, next);
@@ -28,9 +31,9 @@ app.get('/', (req, res) => {
   res.send('Hello docker worldd');
 });
 
-app.use('/auth', authRouter);
-app.use('/school', schoolRouter);
-app.use('/users', usersRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/school', schoolRouter);
+app.use('/api/users', usersRouter);
 app.use('/api/teacher', teacherRouter);
 app.use('/api/student', studentRouter);
 

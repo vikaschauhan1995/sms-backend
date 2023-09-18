@@ -93,5 +93,6 @@ CREATE TABLE student(
   last_login TIMESTAMP
 );
 
+
 -- Commit the transaction
 COMMIT;
