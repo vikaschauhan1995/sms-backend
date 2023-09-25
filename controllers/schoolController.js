@@ -30,10 +30,9 @@ const getSchools = async (req, res) => {
 const getSchool = async (req, res) => {
   const { school_id } = req.params;
   try {
-    const query = `SELECT * FROM school WHERE ${school.SCHOOL_ID} = $1`;
-    console.log(query);
+    const query = `SELECT * FROM school WHERE ${school.SCHOOL_ID} = $1 LIMIT 1`;
     const schoolObj = await db.query(query, [school_id]);
-    res.status(200).json(schoolObj.rows);
+    res.status(200).json(schoolObj?.rows?.[0]);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -43,7 +42,7 @@ const updateSchool = async (req, res) => {
   const { school_name, mobile_number, address1, address2, state, pincode, country, expiration_date } = req.body;
   const { school_id } = req.params;
   try {
-    if(!school_id){
+    if (!school_id) {
       throw Error('School ID is required');
     }
     if (!school_name || !mobile_number || !address1 || !address2 || !state || !pincode || !country) {

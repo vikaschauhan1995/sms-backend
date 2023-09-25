@@ -33,22 +33,22 @@ const createUser = async (username, email, type, school_id, old_user_id) => {
     throw Error(`${username} is already in use`);
   }
   if (hasAlreadyUser.rows.length === 0) {
-    const query = `INSERT INTO users (${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.PASSWORD}, ${users.USER_TYPE}, ${users.IS_ACTIVE}) VALUES($1, $2, $3, $4, $5, $6, $7)`;
+    const query = `INSERT INTO users (${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.PASSWORD}, ${users.USER_TYPE}, ${users.IS_ACTIVE}) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.IS_ACTIVE}, ${users.CREATED_ON}`;
     const generate_password_query = `INSERT INTO verification (${verification?.USER_ID}, ${verification?.PURPOSE}, ${verification?.OTP}) VALUES($1, $2, $3)`;
     const otp = generateOTP(6);
     const user_id = old_user_id ? old_user_id : uuidv4();
     await db.query(generate_password_query, [user_id, "generate password", otp]);
     await generatePasswordMail(email, user_id, otp);
-    await db.query(query, [user_id, school_id, email, username, "OOPS", type, false]);
-    return user_id;
+    const newUserQueryResponse = await db.query(query, [user_id, school_id, email, username, "OOPS", type, false]);
+    return newUserQueryResponse?.rows?.[0];
   }
 }
 
 const createUserRoute = async (req, res) => {
-  const { username, email, type } = req.body;
+  const { username, email, user_type } = req.body;
   const { school_id } = req.params;
   try {
-    const newUserId = await createUser(username, email, type, school_id);
+    const newUserId = await createUser(username, email, user_type, school_id);
     res.status(200).json(newUserId);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -110,7 +110,7 @@ const deleteUser = async (req, res) => {
     }
     const query = `DELETE FROM users WHERE ${users.USER_ID} = $1 RETURNING id, ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.CREATED_ON}, ${users.LAST_LOGIN}`;
     const deletedUser = await db.query(query, [user_id]);
-    res.status(200).json(deletedUser.rows);
+    res.status(200).json(deletedUser.rows?.[0]);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
