@@ -46,6 +46,9 @@ const generatePasswordForNewUser = async (req, res) => {
     if (!password || !rePassword) {
       throw Error('Password required');
     }
+    if(password !== rePassword) {
+      throw Error('Password not match');
+    }
     const obj = jwt.verify(token, process.env.JWT_SECRET_KEY);
     // res.status(200).json(obj);
     const verificationQuery = `SELECT * FROM verification WHERE ${verification?.USER_ID} = $1 AND ${verification?.OTP} = $2 LIMIT 1`;
