@@ -12,6 +12,7 @@ const schoolRouter = require('./routes/school');
 const usersRouter = require('./routes/users');
 const teacherRouter = require('./routes/teacher');
 const studentRouter = require('./routes/student');
+const nav = require('./routes/nav');
 
 const tokenValidation = require('./middleware/tokenValidation');
 
@@ -36,6 +37,7 @@ app.use('/api/school', schoolRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/teacher', teacherRouter);
 app.use('/api/student', studentRouter);
+app.use('/api/nav', nav);
 
 db.connect().then(() => {
   app.listen(PORT, () => {
