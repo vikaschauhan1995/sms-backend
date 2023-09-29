@@ -11,6 +11,12 @@ const createTeacher = async (req, res) => {
     if (!first_name || !last_name || !class_ || !section || !gender || !dob || !id_number || !subject || !religion || !email || !username || !mobile_number || !address) {
       throw Error("All fields must be filled");
     }
+    const checkIsTeacherUsernameAlreadyExists = `SELECT * FROM teacher WHERE ${teacher.USERNAME} = $1 LIMIT 1`;
+    const checkIsTeacherUsernameAlreadyExistsReaponse = await db.query(checkIsTeacherUsernameAlreadyExists, [username]);
+    if(checkIsTeacherUsernameAlreadyExistsReaponse?.rows.length > 0){
+      throw Error("Teacher username already exists");
+    }
+
     const userQuery = `SELECT * FROM users WHERE (${users?.USER_ID} = $1 AND ${users?.USER_TYPE} = 'admin') OR (${users?.USER_ID} = $2 AND ${users?.USER_TYPE} = 'root') LIMIT 1`;
     const userObj = await db.query(userQuery, [user_id, user_id]);
     const user = userObj?.rows[0];
@@ -26,8 +32,8 @@ const createTeacher = async (req, res) => {
     }
     if (newTeacher) {
       const newUserId = await createUser(newTeacher?.[teacher?.USERNAME], newTeacher?.[teacher?.EMAIL], "teacher", newTeacher?.[teacher?.SCHOOL_ID], newTeacher?.[teacher?.USER_ID]);
-      res.status(200).json({ user_id: newUserId });
     }
+    res.status(200).json(newTeacher);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -132,10 +138,24 @@ const deleteTeacher = async (req, res) => {
     const deletedTeacher = deleteTeacherQueryResponse?.rows[0];
     const deletedUser = deleteUserQueryResponse?.rows[0];
     if (!deletedTeacher || !deletedUser) {
-      throw Error("Couldn't find deelted teacher and delete user data");
+      throw Error("Couldn't find deleted teacher and delete user data");
     }
     res.status(200).json({ teacher: deletedTeacher, user: deletedUser });
   } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+}
+
+const getAllTeachersBySchoolId = async (req, res) => {
+  try{
+    const { school_id } = req.params;
+    if(!school_id){
+      throw Error("School id is not available");
+    }
+    const allTeacherQuery = `SELECT * FROM teacher WHERE ${teacher?.SCHOOL_ID} = $1`;
+    const allTeachersResponse = await db.query(allTeacherQuery, [school_id]);
+    res.status(200).json(allTeachersResponse?.rows);
+  }catch(error){
     res.status(400).json({ error: error.message });
   }
 }
@@ -145,5 +165,6 @@ module.exports = {
   getAllTeachersByUsertype,
   getTeacher,
   updateTeacher,
-  deleteTeacher
+  deleteTeacher,
+  getAllTeachersBySchoolId
 }
