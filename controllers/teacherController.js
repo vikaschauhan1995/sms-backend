@@ -79,10 +79,11 @@ const getTeacher = async (req, res) => {
     const selectQuery = `SELECT * FROM teacher WHERE ${teacher?.USER_ID} = $1`;
     const selectQueryResponse = await db.query(selectQuery, [user_id]);
     const teacherObj = selectQueryResponse?.rows[0];
+    // console.log("selectQueryResponse==>>", selectQueryResponse?.rows[0]);
     if (!teacherObj) {
       throw Error("Could't find the the teacher");
     }
-    res.status(200).json(teacher);
+    res.status(200).json(teacherObj);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
