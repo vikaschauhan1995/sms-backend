@@ -93,6 +93,16 @@ CREATE TABLE student(
   last_login TIMESTAMP
 );
 
+CREATE TABLE teacher_attendance(
+  id serial PRIMARY KEY,
+  teacher_id VARCHAR(255) NOT NULL,
+  school_id VARCHAR(255) NOT NULL,
+  created_by VARCHAR(255) NOT NULL,
+  is_present BOOLEAN NOT NULL,
+  comment VARCHAR(255) NOT NULL,
+  created_date DATE DEFAULT CURRENT_DATE,
+  created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 -- Commit the transaction
 COMMIT;
