@@ -79,9 +79,27 @@ const getTeacherAttendanceByDateAndSchoolId = async (req, res) => {
   }
 }
 
+const getTeacherAttendanceOfMonth = async (req, res) => {
+  try {
+    const { school_id, YYYY, MM } = req.params;
+    const S_YYYYMM = YYYY + '-' + MM + '-01';
+    const L_YYYYMM = YYYY + '-' + (MM >= 12 ? '01' : parseInt(MM) + 1) + '-01';
+    
+
+    const getTeacherAttendanceQuery = `SELECT * FROM teacher_attendance WHERE ${teacher_attendance_table?.CREATED_DATE} >= $1 AND ${teacher_attendance_table?.CREATED_DATE} < $2 AND ${teacher_attendance_table?.SCHOOL_ID} = $3`;
+    // const getTeacherAttendanceQuery_query = `SELECT * FROM teacher_attendance WHERE ${teacher_attendance_table?.CREATED_DATE} >= '${S_YYYYMM}' AND ${teacher_attendance_table?.CREATED_DATE} < '${L_YYYYMM}' AND ${teacher_attendance_table?.SCHOOL_ID} = '${school_id}'`;
+    // console.log("getTeacherAttendanceQuery_query=>", getTeacherAttendanceQuery_query);
+    const getTeacherAttendanceQueryResponse = await db.query(getTeacherAttendanceQuery, [S_YYYYMM, L_YYYYMM, school_id]);
+    res.status(200).json(getTeacherAttendanceQueryResponse?.rows);
+  } catch(error) {
+    res.status(400).json({ error: error.message });
+  }
+}
+
 
 module.exports = {
   postTeacherAttendance,
   updateTeacherAttendanceController,
-  getTeacherAttendanceByDateAndSchoolId
+  getTeacherAttendanceByDateAndSchoolId,
+  getTeacherAttendanceOfMonth
 };
