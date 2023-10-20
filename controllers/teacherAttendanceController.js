@@ -23,9 +23,8 @@ const postTeacherAttendance = async (req, res) => {
     if(checkTeacherAttendanceAlreadyExistsResponse.rows.length > 0){
       return await updateTeacherAttendanceController(req, res);
     }
-
-    const addAttendanceQuery = `INSERT INTO teacher_attendance(${teacher_attendance_table?.TEACHER_ID}, ${teacher_attendance_table?.SCHOOL_ID}, ${teacher_attendance_table?.CREATED_BY}, ${teacher_attendance_table?.IS_PRESENT}, ${teacher_attendance_table?.COMMENT}) VALUES($1, $2, $3, $4, $5) RETURNING *`;
-    const addAttendanceQueryResponse = await db.query(addAttendanceQuery, [teacher_id, school_id, created_by, is_present, comment_]);
+    const addAttendanceQuery = `INSERT INTO teacher_attendance(${teacher_attendance_table?.TEACHER_ID}, ${teacher_attendance_table?.SCHOOL_ID}, ${teacher_attendance_table?.CREATED_BY}, ${teacher_attendance_table?.IS_PRESENT}, ${teacher_attendance_table?.CREATED_DATE}, ${teacher_attendance_table?.COMMENT}) VALUES($1, $2, $3, $4, $5, $6) RETURNING *`;
+    const addAttendanceQueryResponse = await db.query(addAttendanceQuery, [teacher_id, school_id, created_by, is_present, created_date, comment_]);
     res.status(200).json(addAttendanceQueryResponse?.rows?.[0]);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -86,7 +85,7 @@ const getTeacherAttendanceOfMonth = async (req, res) => {
     const L_YYYYMM = YYYY + '-' + (MM >= 12 ? '01' : parseInt(MM) + 1) + '-01';
     
 
-    const getTeacherAttendanceQuery = `SELECT * FROM teacher_attendance WHERE ${teacher_attendance_table?.CREATED_DATE} >= $1 AND ${teacher_attendance_table?.CREATED_DATE} < $2 AND ${teacher_attendance_table?.SCHOOL_ID} = $3`;
+    const getTeacherAttendanceQuery = `SELECT ta.*, t.first_name, t.last_name FROM teacher_attendance as ta LEFT JOIN teacher as t ON ta.teacher_id = t.user_id WHERE ta.${teacher_attendance_table?.CREATED_DATE} >= $1 AND ta.${teacher_attendance_table?.CREATED_DATE} < $2 AND ta.${teacher_attendance_table?.SCHOOL_ID} = $3`;
     // const getTeacherAttendanceQuery_query = `SELECT * FROM teacher_attendance WHERE ${teacher_attendance_table?.CREATED_DATE} >= '${S_YYYYMM}' AND ${teacher_attendance_table?.CREATED_DATE} < '${L_YYYYMM}' AND ${teacher_attendance_table?.SCHOOL_ID} = '${school_id}'`;
     // console.log("getTeacherAttendanceQuery_query=>", getTeacherAttendanceQuery_query);
     const getTeacherAttendanceQueryResponse = await db.query(getTeacherAttendanceQuery, [S_YYYYMM, L_YYYYMM, school_id]);
