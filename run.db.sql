@@ -104,5 +104,15 @@ CREATE TABLE teacher_attendance(
   created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE classes(
+  id serial PRIMARY KEY,
+  school_id VARCHAR(255) NOT NULL,
+  created_by VARCHAR(255) NOT NULL,
+  class_name VARCHAR(55) NOT NULL,
+  section VARCHAR(55) NOT NULL,
+  created_year INT NOT NULL,
+  created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Commit the transaction
 COMMIT;

@@ -7,7 +7,8 @@ const navListDetails = {
   admin: [
     { name: 'Teacher', url: '/teacher' },
     { name: 'Student', url: '/student' },
-    { name: 'Teacher Attendence', url: '/teacher_attendance' }
+    { name: 'Teacher Attendence', url: '/teacher_attendance' },
+    { name: 'Class', url: '/class' }
   ],
   teacher: [
     { name: 'Student', url: '/student' }

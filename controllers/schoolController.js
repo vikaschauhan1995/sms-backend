@@ -2,6 +2,12 @@ const { v4: uuidv4 } = require('uuid');
 const school = require('../constants/school_table');
 const db = require('../db');
 
+const getSchoolBySchoolId = async (school_id) => {
+  const getSchool = `SELECT * FROM school WHERE ${school?.SCHOOL_ID} = $1 LIMIT 1`;
+  const getSchoolResponse = await db.query(getSchool, [school_id]);
+  return getSchoolResponse.rows[0];
+}
+
 const createSchool = async (req, res) => {
   const { school_name, mobile_number, address1, address2, state, pincode, country, expiration_date } = req.body;
   try {
@@ -82,5 +88,6 @@ module.exports = {
   getSchools,
   getSchool,
   updateSchool,
-  deleteSchool
+  deleteSchool,
+  getSchoolBySchoolId
 };
