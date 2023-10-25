@@ -39,14 +39,15 @@ const updateClass = async (req, res) => {
   }
 }
 
-const getAllClassesBySchoolId = async (req, res) => {
+const getAllClassesBySchoolIdAndCreatedYear = async (req, res) => {
   try{
-    const { school_id } = req.params;
+    const { school_id, created_year } = req.params;
     if(!school_id) throw Error("School id is not provided");
+    if(!created_year) throw Error("Created year is not provided");
     const oldSchool = await getSchoolBySchoolId(school_id);
     if(!oldSchool) throw Error("School id is not valid");
-    const getClasses = `SELECT * FROM classes WHERE ${classes_table?.SCHOOL_ID} = $1 ORDER BY id DESC`;
-    const getClassesResponse = await db.query(getClasses, [school_id]);
+    const getClasses = `SELECT * FROM classes WHERE ${classes_table?.SCHOOL_ID} = $1 AND ${classes_table?.CREATED_YEAR} = $2 ORDER BY id DESC`;
+    const getClassesResponse = await db.query(getClasses, [school_id, created_year]);
     res.status(200).json(getClassesResponse.rows);
   }catch(error){
     res.status(400).json({ error: error.message });
@@ -70,6 +71,6 @@ const deleteClassByClassId = async (req, res) => {
 module.exports = {
   saveClass,
   updateClass,
-  getAllClassesBySchoolId,
+  getAllClassesBySchoolIdAndCreatedYear,
   deleteClassByClassId
 }
