@@ -7,7 +7,8 @@ const nodeMailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const generatePasswordMail = require('../methods/generatePasswordMail');
 const generateOTP = require('../methods/generateOTP');
-
+const validateEmail = require('../utility/validateEmail');
+const validateUsername = require('../utility/validateUsername');
 
 const getUsersBySchool = async (req, res) => {
   const { school_id } = req.params;
@@ -45,9 +46,15 @@ const createUser = async (username, email, type, school_id, old_user_id) => {
 }
 
 const createUserRoute = async (req, res) => {
-  const { username, email, user_type } = req.body;
-  const { school_id } = req.params;
   try {
+    const { username, email, user_type } = req.body;
+    if(validateUsername(username) === false){
+      throw Error("Username accepts underscore and 3-20 characters long");
+    }
+    if(validateEmail(email) === false){
+      throw Error("Email is not valid");
+    }
+    const { school_id } = req.params;
     const newUserId = await createUser(username, email, user_type, school_id);
     res.status(200).json(newUserId);
   } catch (err) {
@@ -88,6 +95,12 @@ const updateUser = async (req, res) => {
     }
     if (!user_id) {
       throw Error(`${users.USER_ID} is not available`);
+    }
+    if(validateUsername(username) === false){
+      throw Error("Username accepts underscore and 3-20 characters long");
+    }
+    if(validateEmail(email) === false){
+      throw Error("Email is not valid");
     }
     const query = `UPDATE users SET
       ${users.USERNAME} = $1,

@@ -3,6 +3,8 @@ const users = require('../constants/users_table');
 const teacher = require('../constants/teacher_table');
 const db = require('../db');
 const { createUser } = require('./usersController');
+const validateEmail = require('../utility/validateEmail');
+const validateUsername = require('../utility/validateUsername');
 
 const createTeacher = async (req, res) => {
   try {
@@ -10,6 +12,12 @@ const createTeacher = async (req, res) => {
     const { user_id } = req.params;
     if (!first_name || !last_name || !class_ || !section || !gender || !dob || !id_number || !subject || !religion || !email || !username || !mobile_number || !address) {
       throw Error("All fields must be filled");
+    }
+    if(validateEmail(email) === false){
+      throw Error("Email is not valid");
+    }
+    if(validateUsername(username) === false){
+      throw Error("Username accepts underscore and 3-20 characters long");
     }
     const checkIsTeacherUsernameAlreadyExists = `SELECT * FROM teacher WHERE ${teacher.USERNAME} = $1 LIMIT 1`;
     const checkIsTeacherUsernameAlreadyExistsReaponse = await db.query(checkIsTeacherUsernameAlreadyExists, [username]);
@@ -99,6 +107,12 @@ const updateTeacher = async (req, res) => {
     // console.log("first_name, last_name, class_, section, gender, dob, id_number, subject, religion, email, username, mobile_number, address,=>", first_name, last_name, class_, section, gender, dob, id_number, subject, religion, email, username, mobile_number, address,);
     if (!first_name || !last_name || !class_ || !section || !gender || !dob || !id_number || !subject || !religion || !email || !username || !mobile_number || !address) {
       throw Error("All fields must be filled");
+    }
+    if(validateEmail(email) === false){
+      throw Error("email is not valid");
+    }
+    if(validateUsername(username) === false){
+      throw Error("Username accepts underscore and 3-20 characters long");
     }
     const updateQuery = `UPDATE teacher SET
     ${teacher?.FIRST_NAME} = $1, 
