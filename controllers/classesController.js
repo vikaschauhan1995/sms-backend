@@ -3,6 +3,7 @@ const classes_table = require("../constants/classes_table")
 const { getSchoolBySchoolId } = require('./schoolController.js');
 
 const getClassById = async (id) => {
+  if(!id) throw Error("Class Id is required");
   const selectClass = `SELECT * FROM classes WHERE id = $1 LIMIT 1`;
   const selectClassResponse = await db.query(selectClass, [id]);
   return selectClassResponse?.rows[0];
@@ -68,9 +69,22 @@ const deleteClassByClassId = async (req, res) => {
   }
 }
 
+const getClass = async (req, res) => {
+  try{
+    const { id } = req.params;
+    if(!id) throw Error("Class id is not provided");
+    const class_ = await getClassById(id);
+    if(!class_) throw Error("Class id is not valid");
+    res.status(200).json(class_);
+  }catch(error){
+    res.status(400).json({ error: error.message });
+  }
+}
+
 module.exports = {
   saveClass,
   updateClass,
   getAllClassesBySchoolIdAndCreatedYear,
-  deleteClassByClassId
+  deleteClassByClassId,
+  getClass
 }
