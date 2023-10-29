@@ -35,13 +35,13 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRouter);
-app.use('/api/school', schoolRouter);
-app.use('/api/users', usersRouter);
-app.use('/api/teacher', teacherRouter);
-app.use('/api/student', studentRouter);
-app.use('/api/nav', navRouter);
-app.use('/api/teacher_attendance', teacherAttendanceRouter);
-app.use('/api/classes', classesRouter);
+app.use('/api/school', tokenValidation, schoolRouter);
+app.use('/api/users', tokenValidation, usersRouter);
+app.use('/api/teacher', tokenValidation, teacherRouter);
+app.use('/api/student', tokenValidation, studentRouter);
+app.use('/api/nav', tokenValidation, navRouter);
+app.use('/api/teacher_attendance', tokenValidation, teacherAttendanceRouter);
+app.use('/api/classes', tokenValidation, classesRouter);
 
 db.connect().then(() => {
   app.listen(PORT, () => {

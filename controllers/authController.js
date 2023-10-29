@@ -7,7 +7,8 @@ const users = require('../constants/users_table');
 const verification = require('../constants/verification_table');
 
 const createToken = (user_id) => {
-  return jwt.sign({ user_id }, process.env.JWT_SECRET_KEY, { expiresIn: 60 * 60 });
+  const expiration = '1d'; // 1 day
+  return jwt.sign({ user_id }, process.env.JWT_SECRET_KEY, { expiresIn: expiration });
 }
 
 

@@ -2,19 +2,19 @@ const jwt = require('jsonwebtoken');
 
 
 const tokenValidation = async (req, res, next) => {
-  const { authentication } = req.headers;
-  if (!authentication) {
-    return res.json({ message: 'Authentication token is required' });
+  const { authorization } = req.headers;
+  if (!authorization) {
+    throw Error("Token no available");
   }
   try {
-    const token = authentication?.split(' ')[1];
-    const { id } = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    if (!id) {
-      throw Error('Authentication token failed');
+    const token = authorization?.split(' ')[1];
+    const { user_id } = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    if (!user_id) {
+      throw Error('Authorization token failed');
     }
     next();
   } catch (error) {
-    res.json({ error: 'Authentication token error ' + error.message });
+    res.status(400).json({ error: 'Authorization token error', message: error.message });
   }
 }
 
