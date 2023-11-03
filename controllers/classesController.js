@@ -9,6 +9,13 @@ const getClassById = async (id) => {
   return selectClassResponse?.rows[0];
 }
 
+const getClassByIdAndCreatedBy = async (id, created_by) => {
+  if(!id) throw Error("Class Id is required");
+  const selectClass = `SELECT * FROM classes WHERE id = $1 AND created_by = $2 LIMIT 1`;
+  const selectClassResponse = await db.query(selectClass, [id, created_by]);
+  return selectClassResponse?.rows[0];
+}
+
 const saveClass = async (req, res) => {
   try {
     const { school_id, created_by, class_name, section, created_year } = req.body;
@@ -86,5 +93,7 @@ module.exports = {
   updateClass,
   getAllClassesBySchoolIdAndCreatedYear,
   deleteClassByClassId,
-  getClass
+  getClass,
+  getClassById,
+  getClassByIdAndCreatedBy
 }

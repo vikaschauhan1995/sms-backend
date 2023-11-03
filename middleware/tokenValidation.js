@@ -12,6 +12,7 @@ const tokenValidation = async (req, res, next) => {
     if (!user_id) {
       throw Error('Authorization token failed');
     }
+    req.user_id = user_id;
     next();
   } catch (error) {
     res.status(400).json({ error: 'Authorization token error', message: error.message });

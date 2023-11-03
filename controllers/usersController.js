@@ -10,8 +10,18 @@ const generateOTP = require('../methods/generateOTP');
 const validateEmail = require('../utility/validateEmail');
 const validateUsername = require('../utility/validateUsername');
 
+
+const getUserObjByUserId = async (user_id) => {
+  const query = `SELECT id, ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.CREATED_ON}, ${users.LAST_LOGIN} FROM users WHERE ${users.USER_ID} = $1 LIMIT 1`;
+  const usersArray = await db.query(query, [user_id]);
+  return usersArray.rows[0];
+}
+
 const getUsersBySchool = async (req, res) => {
   const { school_id } = req.params;
+  if(!school_id){
+    throw Error("School id is not available");
+  }
   try {
     const query = `SELECT id, ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.CREATED_ON}, ${users.LAST_LOGIN} FROM users WHERE ${users.SCHOOL_ID} = $1`;
     const usersArray = await db.query(query, [school_id]);
@@ -131,6 +141,7 @@ const deleteUser = async (req, res) => {
 
 
 module.exports = {
+  getUserObjByUserId,
   getUsersBySchool,
   createUserRoute,
   createUser,
