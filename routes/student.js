@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 // const { createStudent, getAllStudentsByUserType, getStudent, updateStudent, deleteStudent } = require('../controllers/studentController_');
-const { createStudent, getStudentsByClassId } = require('../controllers/studentController');
+const { createStudent, getStudentsByClassId, updateStudentByStudentId, deleteStudentByStudentId } = require('../controllers/studentController');
 const student_table = require('../constants/student_table');
 
 
@@ -14,5 +14,7 @@ const student_table = require('../constants/student_table');
 
 router.post(`/`, createStudent);
 router.get(`/class/:${student_table?.CLASS_ID}`, getStudentsByClassId);
+router.put(`/:${student_table?.STUDENT_ID}`, updateStudentByStudentId);
+router.delete(`/:${student_table?.STUDENT_ID}`, deleteStudentByStudentId);
 
 module.exports = router;
