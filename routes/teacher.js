@@ -6,11 +6,11 @@ const { createTeacher, getAllTeachersByUsertype, getTeacher, updateTeacher, dele
 const teacher_table = require('../constants/teacher_table');
 
 
-router.post(`/:${users?.USER_ID}`, createTeacher);
+router.post(`/`, createTeacher);
 router.get(`/all/:${users?.USER_ID}`, getAllTeachersByUsertype);
 router.get(`/school/all/:${teacher_table?.SCHOOL_ID}`, getAllTeachersBySchoolId);
-router.get(`/:${users?.USER_ID}`, getTeacher)
-router.put(`/:${users?.USER_ID}`, updateTeacher);
-router.delete(`/:${users?.USER_ID}`, deleteTeacher);
+router.get(`/:${teacher_table?.TEACHER_ID}`, getTeacher)
+router.put(`/:${teacher_table?.TEACHER_ID}`, updateTeacher);
+router.delete(`/:${teacher_table?.TEACHER_ID}`, deleteTeacher);
 
 module.exports = router;

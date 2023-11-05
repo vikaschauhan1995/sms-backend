@@ -5,6 +5,7 @@ const db = require('../db');
 
 const users = require('../constants/users_table');
 const verification = require('../constants/verification_table');
+const createTokenForObject = require('../methods/createTokenForObject');
 
 const createToken = (user_id) => {
   const expiration = '1d'; // 1 day
@@ -29,8 +30,8 @@ const loginUser = async (req, res) => {
         throw Error('Invalid password');
       }
       const user_ = user.rows[0];
-      const token = createToken(user_?.[users?.USER_ID]);
       delete user_?.[users?.PASSWORD];
+      const token = createTokenForObject(user_);
       res.status(200).json({ token, user: user_ });
     }
   } catch (error) {

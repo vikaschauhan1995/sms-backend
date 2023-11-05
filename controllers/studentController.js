@@ -7,7 +7,7 @@ const users_table = require('../constants/users_table');
 const student_table = require('../constants/student_table');
 const { getClassByIdAndCreatedBy } = require('./classesController');
 const validateEmail = require('../utility/validateEmail');
-
+const nodemailer = require('nodemailer');
 
 const createStudent = async (req, res) => {
   try{
@@ -44,9 +44,12 @@ const createStudent = async (req, res) => {
 
 const getStudentsByClassId = async (req, res) => {
   try{
-    // console.log("req.user_id===>>>", req.user_id);
+    // console.log("req?.user?.user_id===>>>", req?.user?.user_id);
     const { class_id } = req.params;
-    const created_by = req.user_id;
+    const created_by = req?.user?.user_id;
+    if(!created_by) {
+      throw Error("Created by is not available");
+    }
     if(!class_id){
       throw Error("Class id is required");
     }
@@ -97,11 +100,40 @@ const deleteStudentByStudentId = async (req, res) => {
   }
 }
 
+const sendMail = (req, res) => {
+  try{
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail', // Use your email service provider (e.g., 'Gmail', 'Outlook', etc.)
+      auth: {
+        user: 'coolestvikas1995@gmail.com',
+        pass: process.env.GOOGLE_APP_PASSWORD,
+      },
+    });
+    const mailOptions = {
+      from: 'no-reply@sms.com',
+      to: 'vikas.chauhan.bb@gmail.com',
+      subject: 'Hello from Node.js!',
+      text: 'This is a test email sent from Node.js with Nodemailer.',
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    });
+    res.status(200).json({ mail: "mail sent scucessfully"});;
+  }catch(error){
+    res.status(400).json({ error: error.message });
+  }
+}
+
 module.exports = {
   createStudent,
   getStudentsByClassId,
   updateStudentByStudentId,
-  deleteStudentByStudentId
+  deleteStudentByStudentId,
+  sendMail
   // getAllStudentsByUserType,
   // getStudent,
   // updateStudent,

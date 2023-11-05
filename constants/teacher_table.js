@@ -1,5 +1,6 @@
 const teacher_table = {
   USER_ID: "user_id",
+  TEACHER_ID: "teacher_id",
   SCHOOL_ID: "school_id",
   FIRST_NAME: "first_name",
   LAST_NAME: "last_name",
@@ -15,6 +16,7 @@ const teacher_table = {
   MOBILE_NUMBER: "mobile_number",
   ADDRESS: "address",
   IS_ACTIVE: "is_active",
+  CREATED_BY: "created_by",
   CREATED_ON: "created_on",
   LAST_LOGIN: "last_login",
 };
