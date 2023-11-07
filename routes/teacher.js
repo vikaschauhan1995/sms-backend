@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const users = require('../constants/users_table');
-const { createTeacher, getAllTeachersByUsertype, getTeacher, updateTeacher, deleteTeacher, getAllTeachersBySchoolId } = require('../controllers/teacherController');
+const { createTeacher, getAllTeachersByUsertype, getTeacher, updateTeacher, deleteTeacher, getAllTeachersBySchoolId, createTeacherUser } = require('../controllers/teacherController');
 const teacher_table = require('../constants/teacher_table');
 
 
@@ -12,5 +12,6 @@ router.get(`/school/all/:${teacher_table?.SCHOOL_ID}`, getAllTeachersBySchoolId)
 router.get(`/:${teacher_table?.TEACHER_ID}`, getTeacher)
 router.put(`/:${teacher_table?.TEACHER_ID}`, updateTeacher);
 router.delete(`/:${teacher_table?.TEACHER_ID}`, deleteTeacher);
+router.get(`/create_user/:${teacher_table?.TEACHER_ID}`, createTeacherUser);
 
 module.exports = router;

@@ -55,7 +55,7 @@ CREATE TABLE teacher(
 
 CREATE TABLE verification(
   id serial PRIMARY KEY,
-  user_id VARCHAR(255) NOT NULL,
+  unique_id VARCHAR(255) NOT NULL,
   purpose VARCHAR(255) NOT NULL,
   otp INT NOT NULL
 );

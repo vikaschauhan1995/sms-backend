@@ -5,6 +5,11 @@ const db = require('../db');
 const { createUser } = require('./usersController');
 const validateEmail = require('../utility/validateEmail');
 const validateUsername = require('../utility/validateUsername');
+const createOTPVarification = require('../methods/createOTPVarification');
+const createTokenForObject = require('../methods/createTokenForObject');
+const sendMail = require('../methods/sendMail');
+const teacher_table = require('../constants/teacher_table');
+const { CREATE_USER } = require('../constants/verification_table');
 
 const createTeacher = async (req, res) => {
   try{
@@ -61,20 +66,23 @@ const getAllTeachersByUsertype = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 }
-
+const getTeacherById = async function (teacher_id){
+  if (!teacher_id) {
+    throw Error("Couldn't find the teacher's user id");
+  }
+  const selectQuery = `SELECT * FROM teacher WHERE ${teacher?.TEACHER_ID} = $1`;
+  const selectQueryResponse = await db.query(selectQuery, [teacher_id]);
+  const teacherObj = selectQueryResponse?.rows[0];
+  // console.log("selectQueryResponse==>>", selectQueryResponse?.rows[0]);
+  if (!teacherObj) {
+    throw Error("Could't find the the teacher");
+  }
+  return teacherObj;
+}
 const getTeacher = async (req, res) => {
   try {
     const { teacher_id } = req.params;
-    if (!teacher_id) {
-      throw Error("Couldn't find the teacher's user id");
-    }
-    const selectQuery = `SELECT * FROM teacher WHERE ${teacher?.TEACHER_ID} = $1`;
-    const selectQueryResponse = await db.query(selectQuery, [teacher_id]);
-    const teacherObj = selectQueryResponse?.rows[0];
-    // console.log("selectQueryResponse==>>", selectQueryResponse?.rows[0]);
-    if (!teacherObj) {
-      throw Error("Could't find the the teacher");
-    }
+    const teacherObj = await getTeacherById(teacher_id);
     res.status(200).json(teacherObj);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -146,11 +154,33 @@ const getAllTeachersBySchoolId = async (req, res) => {
   }
 }
 
+const createTeacherUser = async (req, res) => {
+  // try{
+    const { teacher_id } = req?.params;
+    const teacherObj = await getTeacherById(teacher_id);
+    if(!teacherObj) throw Error("Coundn't find teacher");
+    const generatedOtp = await createOTPVarification(teacher_id, CREATE_USER);
+    // console.log("generatedOtp=>>", generatedOtp);
+    const otpToken = await createTokenForObject(generatedOtp);
+    const sendTo = teacherObj?.[teacher_table?.EMAIL]
+    const subject = "Create Account on SMS";
+    const body = `Click this link to Create account
+      ${process.env.FRONT_END_URL}/create_user/${otpToken}
+    `;
+    const mailResponse = await sendMail(sendTo, subject, body);
+    res.status(200).json({ message: mailResponse });
+    // console.log("teacher_id=>>", teacher_id);
+  // }catch(error) {
+  //   res.status(400).json({ error: error.message });
+  // }
+}
+
 module.exports = {
   createTeacher,
   getAllTeachersByUsertype,
   getTeacher,
   updateTeacher,
   deleteTeacher,
-  getAllTeachersBySchoolId
+  getAllTeachersBySchoolId,
+  createTeacherUser
 }
