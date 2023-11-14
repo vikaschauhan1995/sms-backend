@@ -6,6 +6,10 @@ const db = require('../db');
 const users = require('../constants/users_table');
 const verification = require('../constants/verification_table');
 const createTokenForObject = require('../methods/createTokenForObject');
+const getObjectFromToken = require('../methods/getObjectFromToken');
+const validateUsername = require('../utility/validateUsername');
+const { getUserObjFromUsername } = require('./usersController');
+const users_table = require('../constants/users_table');
 
 const createToken = (user_id) => {
   const expiration = '1d'; // 1 day
@@ -76,10 +80,39 @@ const generatePasswordForNewUser = async (req, res) => {
   }
 }
 
+const verifyToken = async (req, res) => {
+  try{
+    const { token } = req.params;
+    if(!token) throw Error('Token is required');
+    const tokenObject = await getObjectFromToken(token);
+    if(!tokenObject) throw Error('Token verification failed');
+    res.status(200).json(tokenObject);
+  }catch(error){
+    res.status(400).json({ error: error.message });
+  }
+}
+
+const usernameValidation = async (req, res) => {
+  try{
+    const { username } = req.query;
+    if(!username) throw Error('Username is required');
+    const isValid = validateUsername(username);
+    if(!isValid) throw Error('Username is not valid');
+    const user = await getUserObjFromUsername(username);
+    if(user?.[users_table?.USERNAME]){
+      throw Error("Username is already taken");
+    }
+    res.status(200).json(isValid);
+  }catch(error){
+    res.status(400).json({ error: error.message });
+  }
+}
 
 
 module.exports = {
   loginUser,
   generatePasswordForNewUser,
-  createToken
+  createToken,
+  verifyToken,
+  usernameValidation
 };

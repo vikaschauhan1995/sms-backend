@@ -10,6 +10,7 @@ const createTokenForObject = require('../methods/createTokenForObject');
 const sendMail = require('../methods/sendMail');
 const teacher_table = require('../constants/teacher_table');
 const { CREATE_USER } = require('../constants/verification_table');
+const users_table = require('../constants/users_table');
 
 const createTeacher = async (req, res) => {
   try{
@@ -155,24 +156,26 @@ const getAllTeachersBySchoolId = async (req, res) => {
 }
 
 const createTeacherUser = async (req, res) => {
-  // try{
+  try{
     const { teacher_id } = req?.params;
     const teacherObj = await getTeacherById(teacher_id);
     if(!teacherObj) throw Error("Coundn't find teacher");
     const generatedOtp = await createOTPVarification(teacher_id, CREATE_USER);
+    generatedOtp[users_table?.USER_TYPE] = "teacher";
     // console.log("generatedOtp=>>", generatedOtp);
     const otpToken = await createTokenForObject(generatedOtp);
-    const sendTo = teacherObj?.[teacher_table?.EMAIL]
+    const sendTo = teacherObj?.[teacher_table?.EMAIL];
     const subject = "Create Account on SMS";
     const body = `Click this link to Create account
       ${process.env.FRONT_END_URL}/create_user/${otpToken}
     `;
     const mailResponse = await sendMail(sendTo, subject, body);
-    res.status(200).json({ message: mailResponse });
+    // res.status(200).json({ message: mailResponse });
     // console.log("teacher_id=>>", teacher_id);
-  // }catch(error) {
-  //   res.status(400).json({ error: error.message });
-  // }
+    res.status(200).json({ message: "mail sent" });
+  }catch(error) {
+    res.status(400).json({ error: error.message });
+  }
 }
 
 module.exports = {

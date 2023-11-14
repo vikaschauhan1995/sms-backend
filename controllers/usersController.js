@@ -139,6 +139,20 @@ const deleteUser = async (req, res) => {
   }
 }
 
+const getUserObjFromUsername = async (username) => {
+  if(!username) throw Error("Username is not available");
+  const getUserQuery = `SELECT * FROM users WHERE ${users?.USERNAME} = $1 LIMIT 1`;
+  const getUserResponse = await db.query(getUserQuery, [username]);
+  return getUserResponse.rows?.[0];
+}
+const getUserByUsername = () => {
+  try{
+
+  }catch(error){
+    res.status(400).json({ error: err.message });
+  }
+}
+
 
 module.exports = {
   getUserObjByUserId,
@@ -148,5 +162,7 @@ module.exports = {
   getAllUsers,
   getUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  getUserObjFromUsername,
+  getUserByUsername
 }

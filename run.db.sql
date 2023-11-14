@@ -27,7 +27,7 @@ CREATE TABLE users (
 	user_id VARCHAR ( 255 ) UNIQUE NOT NULL,
   school_id VARCHAR ( 255 ) NOT NULL,
 	email VARCHAR ( 255 ) NOT NULL,
-	username VARCHAR ( 255 ) NOT NULL,
+	username VARCHAR ( 255 ) UNIQUE NOT NULL,
 	password VARCHAR ( 255 ) NOT NULL,
   user_type VARCHAR (25 ) NOT NULL,
   is_active BOOLEAN NOT NULL,
