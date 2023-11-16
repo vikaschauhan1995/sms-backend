@@ -185,5 +185,6 @@ module.exports = {
   updateTeacher,
   deleteTeacher,
   getAllTeachersBySchoolId,
-  createTeacherUser
+  createTeacherUser,
+  getTeacherById
 }

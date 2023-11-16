@@ -4,12 +4,13 @@ const jwt = require('jsonwebtoken');
 const db = require('../db');
 
 const users = require('../constants/users_table');
-const verification = require('../constants/verification_table');
+const { verification_table } = require('../constants/verification_table');
 const createTokenForObject = require('../methods/createTokenForObject');
 const getObjectFromToken = require('../methods/getObjectFromToken');
 const validateUsername = require('../utility/validateUsername');
 const { getUserObjFromUsername } = require('./usersController');
 const users_table = require('../constants/users_table');
+const { getVerification } = require('../methods/verificationMethods');
 
 const createToken = (user_id) => {
   const expiration = '1d'; // 1 day
@@ -57,9 +58,9 @@ const generatePasswordForNewUser = async (req, res) => {
     }
     const obj = jwt.verify(token, process.env.JWT_SECRET_KEY);
     // res.status(200).json(obj);
-    const verificationQuery = `SELECT * FROM verification WHERE ${verification?.USER_ID} = $1 AND ${verification?.OTP} = $2 LIMIT 1`;
-    const verificationObj = await db.query(verificationQuery, [obj?.[verification?.USER_ID], obj?.[verification?.OTP]]);
-    if (!verificationObj?.rows[0]?.[verification?.USER_ID] || !verificationObj?.rows[0]?.[verification?.OTP]) {
+    const verificationQuery = `SELECT * FROM verification WHERE ${verification_table?.USER_ID} = $1 AND ${verification_table?.OTP} = $2 LIMIT 1`;
+    const verificationObj = await db.query(verificationQuery, [obj?.[verification_table?.USER_ID], obj?.[verification_table?.OTP]]);
+    if (!verificationObj?.rows[0]?.[verification_table?.USER_ID] || !verificationObj?.rows[0]?.[verification_table?.OTP]) {
       throw Error('Verification failed / link could be used before');
     }
     const salt = await bcrypt.genSalt(10);
@@ -70,7 +71,7 @@ const generatePasswordForNewUser = async (req, res) => {
       throw Error("Couldn't find user_id");
     }
     const updateQuery = `UPDATE users SET ${users?.PASSWORD} = $1`;
-    const deleteVerificationRowQuery = `DELETE FROM verification WHERE ${verification?.USER_ID} = $1`;
+    const deleteVerificationRowQuery = `DELETE FROM verification WHERE ${verification_table?.USER_ID} = $1`;
     const updateUser = await db.query(updateQuery, [hash]);
     await db.query(deleteVerificationRowQuery, [obj?.[users?.USER_ID]])
     res.status(200).json(updateUser?.rows);
@@ -85,7 +86,12 @@ const verifyToken = async (req, res) => {
     const { token } = req.params;
     if(!token) throw Error('Token is required');
     const tokenObject = await getObjectFromToken(token);
-    if(!tokenObject) throw Error('Token verification failed');
+    if(!tokenObject) throw Error('Token is invalid');
+    const unique_id = tokenObject?.[verification_table?.UNIQUE_ID];
+    const purpost = tokenObject?.[verification_table?.PURPOSE];
+    const otp = tokenObject?.[verification_table?.OTP];
+    const getVerificationObject = await getVerification(unique_id, purpost, otp);
+    if(!getVerificationObject) throw Error("Token Verification failed");
     res.status(200).json(tokenObject);
   }catch(error){
     res.status(400).json({ error: error.message });

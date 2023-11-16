@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const users = require('../constants/users_table');
-const verification = require('../constants/verification_table');
+const { verification_table, CREATE_USER } = require('../constants/verification_table');
 const db = require('../db.js')
 const nodeMailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
@@ -9,6 +9,11 @@ const generatePasswordMail = require('../methods/generatePasswordMail');
 const generateOTP = require('../methods/generateOTP');
 const validateEmail = require('../utility/validateEmail');
 const validateUsername = require('../utility/validateUsername');
+const users_table = require('../constants/users_table');
+const getObjectFromToken = require('../methods/getObjectFromToken.js');
+const { getTeacherById } = require('./teacherController.js');
+const teacher_table = require('../constants/teacher_table.js');
+const { deleteVerification, getVerification } = require('../methods/verificationMethods.js');
 
 
 const getUserObjByUserId = async (user_id) => {
@@ -45,7 +50,7 @@ const createUser = async (username, email, type, school_id, old_user_id) => {
   }
   if (hasAlreadyUser.rows.length === 0) {
     const query = `INSERT INTO users (${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.PASSWORD}, ${users.USER_TYPE}, ${users.IS_ACTIVE}) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.IS_ACTIVE}, ${users.CREATED_ON}`;
-    const generate_password_query = `INSERT INTO verification (${verification?.USER_ID}, ${verification?.PURPOSE}, ${verification?.OTP}) VALUES($1, $2, $3)`;
+    const generate_password_query = `INSERT INTO verification (${verification_table?.UNIQUE_ID}, ${verification_table?.PURPOSE}, ${verification_table?.OTP}) VALUES($1, $2, $3)`;
     const otp = generateOTP(6);
     const user_id = old_user_id ? old_user_id : uuidv4();
     await db.query(generate_password_query, [user_id, "generate password", otp]);
@@ -152,7 +157,66 @@ const getUserByUsername = () => {
     res.status(400).json({ error: err.message });
   }
 }
+const createUserByGivenAllDetails = async (school_id, email, username, password, user_type) => {
+  if(!school_id) throw Error("School_id is required");
+  if(!email) throw Error("Email is required");
+  if(!username) throw Error("Username is required");
+  if(!password) throw Error("Password is required");
+  if(!user_type) throw Error("User_type is required");
 
+  const isUsernameValid = validateUsername(username);
+  if(!isUsernameValid) throw Error("Username is not valid")
+  
+  const user = await getUserObjFromUsername(username);
+  if(user?.[users_table?.USERNAME]) throw Error("Username is already taken");
+  
+  const user_id = uuidv4();
+  const createUserQuery = `INSERT INTO users (${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.PASSWORD}, ${users.USER_TYPE}, ${users.IS_ACTIVE}) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.IS_ACTIVE}, ${users.CREATED_ON}`;
+  const salt = await bcrypt.genSalt(10);
+  const hash = await bcrypt.hash(password, salt);
+  const createUserResponse = await db.query(createUserQuery, [user_id, school_id, email, username, hash, user_type, true]);
+  return createUserResponse?.rows?.[0];
+}
+
+const createUserByUsernameAndPassword = async (req, res) => {
+  try{
+    const { username, password, token } = req.body;
+    if(!username) throw Error("Username field is empty");
+    if(!password) throw Error("Password field is empty");
+    if(!token) throw Error("Token is required");
+    const isUsernameValid = validateUsername(username);
+    if(!isUsernameValid) throw Error("Username is not valid")
+    const user = await getUserObjFromUsername(username);
+    if(user?.[users_table?.USERNAME]) throw Error("Username is already taken");
+    const tokenObject = getObjectFromToken(token);
+    if(!tokenObject) throw Error("Token is not valid");
+    
+    const unique_id = tokenObject?.[verification_table?.UNIQUE_ID];
+    const purpost = tokenObject?.[verification_table?.PURPOSE];
+    const otp = tokenObject?.[verification_table?.OTP];
+    const getVerificationObject = await getVerification(unique_id, purpost, otp);
+    if(!getVerificationObject) throw Error("Token Verification failed");
+
+    const verificationUniqueId = tokenObject?.[verification_table?.UNIQUE_ID];
+    const verificationPurpose = tokenObject?.[verification_table?.PURPOSE];
+    const user_type = tokenObject?.[users_table?.USER_TYPE];
+    if(verificationPurpose !== CREATE_USER) throw Error("Verification purpose is not valid");
+    if(user_type === "teacher"){
+      const teacher = await getTeacherById(verificationUniqueId);
+      if(!teacher) throw Error("Couldn't find teacher");
+      const school_id = teacher?.[teacher_table?.SCHOOL_ID];
+      const email = teacher?.[teacher_table?.EMAIL];
+
+      const createdUser = await createUserByGivenAllDetails(school_id, email, username, password, user_type);
+      if(!createdUser) throw Error("Couldn't find created user");
+      await deleteVerification(verificationUniqueId, verificationPurpose);
+      res.status(200).json(createdUser);
+    }
+    throw Error("Couldn't create user");
+  }catch(error){
+    res.status(400).json({ error: error.message });;
+  }
+}
 
 module.exports = {
   getUserObjByUserId,
@@ -164,5 +228,7 @@ module.exports = {
   updateUser,
   deleteUser,
   getUserObjFromUsername,
-  getUserByUsername
+  getUserByUsername,
+  createUserByUsernameAndPassword,
+  createUserByGivenAllDetails
 }
