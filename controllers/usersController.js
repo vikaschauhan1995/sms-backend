@@ -211,8 +211,9 @@ const createUserByUsernameAndPassword = async (req, res) => {
       if(!createdUser) throw Error("Couldn't find created user");
       await deleteVerification(verificationUniqueId, verificationPurpose);
       res.status(200).json(createdUser);
+    }else{
+      throw Error("Couldn't create user");
     }
-    throw Error("Couldn't create user");
   }catch(error){
     res.status(400).json({ error: error.message });;
   }

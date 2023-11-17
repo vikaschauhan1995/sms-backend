@@ -160,10 +160,14 @@ const createTeacherUser = async (req, res) => {
     const { teacher_id } = req?.params;
     const teacherObj = await getTeacherById(teacher_id);
     if(!teacherObj) throw Error("Coundn't find teacher");
-    const generatedOtp = await createOTPVarification(teacher_id, CREATE_USER);
-    generatedOtp[users_table?.USER_TYPE] = "teacher";
+    const generatedOtpVerificationRespose = await createOTPVarification(teacher_id, CREATE_USER);
+    if(!generatedOtpVerificationRespose) throw Error("Coundn't create OTP for verification'")
+    const generatedOtpObj = {
+      ...generatedOtpVerificationRespose,
+      [users_table?.USER_TYPE]: "teacher"
+    };
     // console.log("generatedOtp=>>", generatedOtp);
-    const otpToken = await createTokenForObject(generatedOtp);
+    const otpToken = await createTokenForObject(generatedOtpObj);
     const sendTo = teacherObj?.[teacher_table?.EMAIL];
     const subject = "Create Account on SMS";
     const body = `Click this link to Create account
