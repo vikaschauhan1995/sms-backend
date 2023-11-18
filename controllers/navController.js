@@ -11,7 +11,7 @@ const navListDetails = {
     { name: 'Class', url: '/class' }
   ],
   teacher: [
-    { name: 'Student', url: '/student' }
+    { name: 'Student Attendance', url: '/student_attendance' }
   ]
 };
 

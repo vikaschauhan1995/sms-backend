@@ -2,7 +2,7 @@ const { v4: uuidv4 } = require('uuid');
 const users = require('../constants/users_table');
 const teacher = require('../constants/teacher_table');
 const db = require('../db');
-const { createUser } = require('./usersController');
+const { createUser } = require('../controllers/usersController');
 const validateEmail = require('../utility/validateEmail');
 const validateUsername = require('../utility/validateUsername');
 const createOTPVarification = require('../methods/createOTPVarification');
@@ -11,6 +11,8 @@ const sendMail = require('../methods/sendMail');
 const teacher_table = require('../constants/teacher_table');
 const { CREATE_USER } = require('../constants/verification_table');
 const users_table = require('../constants/users_table');
+const { getTeacherById } = require('../methods/teacher_methods/getTeacherById');
+const { deleteUserByUsername } = require('../methods/users_methods/deleteUserByUsername');
 
 const createTeacher = async (req, res) => {
   try{
@@ -67,19 +69,7 @@ const getAllTeachersByUsertype = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 }
-const getTeacherById = async function (teacher_id){
-  if (!teacher_id) {
-    throw Error("Couldn't find the teacher's user id");
-  }
-  const selectQuery = `SELECT * FROM teacher WHERE ${teacher?.TEACHER_ID} = $1`;
-  const selectQueryResponse = await db.query(selectQuery, [teacher_id]);
-  const teacherObj = selectQueryResponse?.rows[0];
-  // console.log("selectQueryResponse==>>", selectQueryResponse?.rows[0]);
-  if (!teacherObj) {
-    throw Error("Could't find the the teacher");
-  }
-  return teacherObj;
-}
+
 const getTeacher = async (req, res) => {
   try {
     const { teacher_id } = req.params;
@@ -126,10 +116,17 @@ const updateTeacher = async (req, res) => {
 const deleteTeacher = async (req, res) => {
   try {
     const { teacher_id } = req.params;
-    if(!teacher_id){
+    if(!teacher_id) {
       throw Error("Teacher id not specified");
     }
-    const deleteTeacherQuery = `DELETE FROM teacher WHERE ${teacher?.TEACHER_ID} = $1 RETURNING *`;
+    const teacher = await getTeacherById(teacher_id);
+    if(!teacher) throw Error("Teacher not found");
+    const username = teacher?.[teacher_table?.USERNAME];
+    if(username) {
+      const deletedUser = await deleteUserByUsername(username);
+      if(!deletedUser) throw Error("Couldn't delete teacher related user");
+    }
+    const deleteTeacherQuery = `DELETE FROM teacher WHERE ${teacher_table?.TEACHER_ID} = $1 RETURNING *`;
     const deleteTeacherQueryResponse = await db.query(deleteTeacherQuery, [teacher_id]);
     const deletedTeacher = deleteTeacherQueryResponse?.rows[0];
     if (!deletedTeacher) {
@@ -161,7 +158,7 @@ const createTeacherUser = async (req, res) => {
     const teacherObj = await getTeacherById(teacher_id);
     if(!teacherObj) throw Error("Coundn't find teacher");
     const generatedOtpVerificationRespose = await createOTPVarification(teacher_id, CREATE_USER);
-    if(!generatedOtpVerificationRespose) throw Error("Coundn't create OTP for verification'")
+    if(!generatedOtpVerificationRespose) throw Error("Coundn't create OTP for verification")
     const generatedOtpObj = {
       ...generatedOtpVerificationRespose,
       [users_table?.USER_TYPE]: "teacher"
@@ -189,6 +186,5 @@ module.exports = {
   updateTeacher,
   deleteTeacher,
   getAllTeachersBySchoolId,
-  createTeacherUser,
-  getTeacherById
+  createTeacherUser
 }

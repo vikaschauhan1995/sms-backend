@@ -123,5 +123,13 @@ CREATE TABLE classes(
   created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE session_year(
+  id serial PRIMARY KEY,
+  year INT UNIQUE NOT NULL,
+  session_name VARCHAR(25) NOT NULL
+);
+
+INSERT INTO session_year (year, session_name) VALUES (2023, '2023-2024');
+
 -- Commit the transaction
 COMMIT;

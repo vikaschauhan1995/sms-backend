@@ -3,18 +3,16 @@ const bcrypt = require('bcrypt');
 const users = require('../constants/users_table');
 const { verification_table, CREATE_USER } = require('../constants/verification_table');
 const db = require('../db.js')
-const nodeMailer = require('nodemailer');
-const jwt = require('jsonwebtoken');
 const generatePasswordMail = require('../methods/generatePasswordMail');
 const generateOTP = require('../methods/generateOTP');
 const validateEmail = require('../utility/validateEmail');
 const validateUsername = require('../utility/validateUsername');
 const users_table = require('../constants/users_table');
 const getObjectFromToken = require('../methods/getObjectFromToken.js');
-const { getTeacherById } = require('./teacherController.js');
 const teacher_table = require('../constants/teacher_table.js');
 const { deleteVerification, getVerification } = require('../methods/verificationMethods.js');
-
+const { getTeacherById } = require('../methods/teacher_methods/getTeacherById.js');
+const { setUsernameByTeacherId } = require('../methods/teacher_methods/setUsernameByTeacherId.js');
 
 const getUserObjByUserId = async (user_id) => {
   const query = `SELECT id, ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.CREATED_ON}, ${users.LAST_LOGIN} FROM users WHERE ${users.USER_ID} = $1 LIMIT 1`;
@@ -24,7 +22,7 @@ const getUserObjByUserId = async (user_id) => {
 
 const getUsersBySchool = async (req, res) => {
   const { school_id } = req.params;
-  if(!school_id){
+  if (!school_id) {
     throw Error("School id is not available");
   }
   try {
@@ -63,10 +61,10 @@ const createUser = async (username, email, type, school_id, old_user_id) => {
 const createUserRoute = async (req, res) => {
   try {
     const { username, email, user_type } = req.body;
-    if(validateUsername(username) === false){
+    if (validateUsername(username) === false) {
       throw Error("Username accepts underscore and 3-20 characters long");
     }
-    if(validateEmail(email) === false){
+    if (validateEmail(email) === false) {
       throw Error("Email is not valid");
     }
     const { school_id } = req.params;
@@ -111,10 +109,10 @@ const updateUser = async (req, res) => {
     if (!user_id) {
       throw Error(`${users.USER_ID} is not available`);
     }
-    if(validateUsername(username) === false){
+    if (validateUsername(username) === false) {
       throw Error("Username accepts underscore and 3-20 characters long");
     }
-    if(validateEmail(email) === false){
+    if (validateEmail(email) === false) {
       throw Error("Email is not valid");
     }
     const query = `UPDATE users SET
@@ -145,31 +143,31 @@ const deleteUser = async (req, res) => {
 }
 
 const getUserObjFromUsername = async (username) => {
-  if(!username) throw Error("Username is not available");
+  if (!username) throw Error("Username is not available");
   const getUserQuery = `SELECT * FROM users WHERE ${users?.USERNAME} = $1 LIMIT 1`;
   const getUserResponse = await db.query(getUserQuery, [username]);
   return getUserResponse.rows?.[0];
 }
 const getUserByUsername = () => {
-  try{
+  try {
 
-  }catch(error){
+  } catch (error) {
     res.status(400).json({ error: err.message });
   }
 }
 const createUserByGivenAllDetails = async (school_id, email, username, password, user_type) => {
-  if(!school_id) throw Error("School_id is required");
-  if(!email) throw Error("Email is required");
-  if(!username) throw Error("Username is required");
-  if(!password) throw Error("Password is required");
-  if(!user_type) throw Error("User_type is required");
+  if (!school_id) throw Error("School_id is required");
+  if (!email) throw Error("Email is required");
+  if (!username) throw Error("Username is required");
+  if (!password) throw Error("Password is required");
+  if (!user_type) throw Error("User_type is required");
 
   const isUsernameValid = validateUsername(username);
-  if(!isUsernameValid) throw Error("Username is not valid")
-  
+  if (!isUsernameValid) throw Error("Username is not valid")
+
   const user = await getUserObjFromUsername(username);
-  if(user?.[users_table?.USERNAME]) throw Error("Username is already taken");
-  
+  if (user?.[users_table?.USERNAME]) throw Error("Username is already taken");
+
   const user_id = uuidv4();
   const createUserQuery = `INSERT INTO users (${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.PASSWORD}, ${users.USER_TYPE}, ${users.IS_ACTIVE}) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.IS_ACTIVE}, ${users.CREATED_ON}`;
   const salt = await bcrypt.genSalt(10);
@@ -179,42 +177,44 @@ const createUserByGivenAllDetails = async (school_id, email, username, password,
 }
 
 const createUserByUsernameAndPassword = async (req, res) => {
-  try{
+  try {
     const { username, password, token } = req.body;
-    if(!username) throw Error("Username field is empty");
-    if(!password) throw Error("Password field is empty");
-    if(!token) throw Error("Token is required");
+    if (!username) throw Error("Username field is empty");
+    if (!password) throw Error("Password field is empty");
+    if (!token) throw Error("Token is required");
     const isUsernameValid = validateUsername(username);
-    if(!isUsernameValid) throw Error("Username is not valid")
+    if (!isUsernameValid) throw Error("Username is not valid")
     const user = await getUserObjFromUsername(username);
-    if(user?.[users_table?.USERNAME]) throw Error("Username is already taken");
+    if (user?.[users_table?.USERNAME]) throw Error("Username is already taken");
     const tokenObject = getObjectFromToken(token);
-    if(!tokenObject) throw Error("Token is not valid");
-    
+    if (!tokenObject) throw Error("Token is not valid");
+
     const unique_id = tokenObject?.[verification_table?.UNIQUE_ID];
     const purpost = tokenObject?.[verification_table?.PURPOSE];
     const otp = tokenObject?.[verification_table?.OTP];
     const getVerificationObject = await getVerification(unique_id, purpost, otp);
-    if(!getVerificationObject) throw Error("Token Verification failed");
+    if (!getVerificationObject) throw Error("Token Verification failed");
 
     const verificationUniqueId = tokenObject?.[verification_table?.UNIQUE_ID];
     const verificationPurpose = tokenObject?.[verification_table?.PURPOSE];
     const user_type = tokenObject?.[users_table?.USER_TYPE];
-    if(verificationPurpose !== CREATE_USER) throw Error("Verification purpose is not valid");
-    if(user_type === "teacher"){
+    if (verificationPurpose !== CREATE_USER) throw Error("Verification purpose is not valid");
+    if (user_type === "teacher") {
       const teacher = await getTeacherById(verificationUniqueId);
-      if(!teacher) throw Error("Couldn't find teacher");
+      if (!teacher) throw Error("Couldn't find teacher");
       const school_id = teacher?.[teacher_table?.SCHOOL_ID];
       const email = teacher?.[teacher_table?.EMAIL];
-
+      const teacher_id = teacher?.[teacher_table?.TEACHER_ID];
+      const updatedUser = await setUsernameByTeacherId(teacher_id, username);
+      if (!updatedUser) throw Error("Couldn't set username to teacher");
       const createdUser = await createUserByGivenAllDetails(school_id, email, username, password, user_type);
-      if(!createdUser) throw Error("Couldn't find created user");
+      if (!createdUser) throw Error("Couldn't find created user");
       await deleteVerification(verificationUniqueId, verificationPurpose);
       res.status(200).json(createdUser);
-    }else{
+    } else {
       throw Error("Couldn't create user");
     }
-  }catch(error){
+  } catch (error) {
     res.status(400).json({ error: error.message });;
   }
 }
