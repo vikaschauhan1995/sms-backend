@@ -8,9 +8,9 @@ const { verification_table } = require('../constants/verification_table');
 const createTokenForObject = require('../methods/createTokenForObject');
 const getObjectFromToken = require('../methods/getObjectFromToken');
 const validateUsername = require('../utility/validateUsername');
-const { getUserObjFromUsername } = require('./usersController');
 const users_table = require('../constants/users_table');
 const { getVerification } = require('../methods/verificationMethods');
+const { getUserObjFromUsername } = require('../methods/users_methods/getUserObjFromUsername');
 
 const createToken = (user_id) => {
   const expiration = '1d'; // 1 day

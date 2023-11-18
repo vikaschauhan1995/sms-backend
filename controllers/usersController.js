@@ -13,6 +13,8 @@ const teacher_table = require('../constants/teacher_table.js');
 const { deleteVerification, getVerification } = require('../methods/verificationMethods.js');
 const { getTeacherById } = require('../methods/teacher_methods/getTeacherById.js');
 const { setUsernameByTeacherId } = require('../methods/teacher_methods/setUsernameByTeacherId.js');
+const { getUserObjFromUsername } = require('../methods/users_methods/getUserObjFromUsername.js');
+const { createUserByGivenAllDetails } = require('../methods/users_methods/createUserByGivenAllDetails.js');
 
 const getUserObjByUserId = async (user_id) => {
   const query = `SELECT id, ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.CREATED_ON}, ${users.LAST_LOGIN} FROM users WHERE ${users.USER_ID} = $1 LIMIT 1`;
@@ -142,39 +144,6 @@ const deleteUser = async (req, res) => {
   }
 }
 
-const getUserObjFromUsername = async (username) => {
-  if (!username) throw Error("Username is not available");
-  const getUserQuery = `SELECT * FROM users WHERE ${users?.USERNAME} = $1 LIMIT 1`;
-  const getUserResponse = await db.query(getUserQuery, [username]);
-  return getUserResponse.rows?.[0];
-}
-const getUserByUsername = () => {
-  try {
-
-  } catch (error) {
-    res.status(400).json({ error: err.message });
-  }
-}
-const createUserByGivenAllDetails = async (school_id, email, username, password, user_type) => {
-  if (!school_id) throw Error("School_id is required");
-  if (!email) throw Error("Email is required");
-  if (!username) throw Error("Username is required");
-  if (!password) throw Error("Password is required");
-  if (!user_type) throw Error("User_type is required");
-
-  const isUsernameValid = validateUsername(username);
-  if (!isUsernameValid) throw Error("Username is not valid")
-
-  const user = await getUserObjFromUsername(username);
-  if (user?.[users_table?.USERNAME]) throw Error("Username is already taken");
-
-  const user_id = uuidv4();
-  const createUserQuery = `INSERT INTO users (${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.PASSWORD}, ${users.USER_TYPE}, ${users.IS_ACTIVE}) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.IS_ACTIVE}, ${users.CREATED_ON}`;
-  const salt = await bcrypt.genSalt(10);
-  const hash = await bcrypt.hash(password, salt);
-  const createUserResponse = await db.query(createUserQuery, [user_id, school_id, email, username, hash, user_type, true]);
-  return createUserResponse?.rows?.[0];
-}
 
 const createUserByUsernameAndPassword = async (req, res) => {
   try {
@@ -228,8 +197,5 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
-  getUserObjFromUsername,
-  getUserByUsername,
-  createUserByUsernameAndPassword,
-  createUserByGivenAllDetails
+  createUserByUsernameAndPassword
 }
