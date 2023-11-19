@@ -129,6 +129,21 @@ CREATE TABLE session_year(
   session_name VARCHAR(25) NOT NULL
 );
 
+CREATE TABLE admin(
+  id serial PRIMARY KEY,
+  admin_id VARCHAR(255) UNIQUE NOT NULL,
+  school_id VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  username VARCHAR (255) UNIQUE,
+  mobile_number BIGINT NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  is_active BOOLEAN NOT NULL,
+  created_by VARCHAR(255) NOT NULL,
+  created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_login TIMESTAMP
+);
+
 INSERT INTO session_year (year, session_name) VALUES (2023, '2023-2024');
 
 -- Commit the transaction

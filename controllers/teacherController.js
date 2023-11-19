@@ -2,7 +2,6 @@ const { v4: uuidv4 } = require('uuid');
 const users = require('../constants/users_table');
 const teacher = require('../constants/teacher_table');
 const db = require('../db');
-const { createUser } = require('../controllers/usersController');
 const validateEmail = require('../utility/validateEmail');
 const validateUsername = require('../utility/validateUsername');
 const createOTPVarification = require('../methods/createOTPVarification');
