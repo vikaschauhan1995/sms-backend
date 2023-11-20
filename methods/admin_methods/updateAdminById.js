@@ -16,7 +16,7 @@ const updateAdminById = async (admin_id, name, email, mobile_number, address) =>
   ${admin_table?.ADDRESS} = $4
   WHERE ${admin_table?.ADMIN_ID} = $5
   RETURNING *`;
-  const updateAdminResponse = await db.query(updateAdminQuery, [name, email, mobile_number, address, admin_id]);
+  const updateAdminResponse = await db.query(updateAdminQuery, [name, email, mobile_number, address, admin_id]);updateAdminResponse?.rows?.[0]);
   return updateAdminResponse?.rows?.[0];
 }
 

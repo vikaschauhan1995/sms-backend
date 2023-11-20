@@ -41,7 +41,7 @@ const getAdminByAdminIdAPI = async (req, res) => {
 const updateAdminByIdAPI = async (req, res) => {
   try {
     const { admin_id, name, email, mobile_number, address } = req?.body;
-    const updatedAdmin = updateAdminById(admin_id, name, email, mobile_number, address);
+    const updatedAdmin = await updateAdminById(admin_id, name, email, mobile_number, address);
     res.status(200).json(updatedAdmin);
   } catch (error) {
     res.status(400).json({ error: error.message });

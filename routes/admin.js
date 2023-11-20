@@ -11,7 +11,7 @@ const { createAdminAPI,
 router.post(`/`, createAdminAPI);
 router.get(`/${admin_table?.ADMIN_ID}`, getAdminByAdminIdAPI);
 router.put(`/`, updateAdminByIdAPI);
-router.delete(`/${admin_table?.ADMIN_ID}`, deleteAdminByAdminIdAPI);
+router.delete(`/:${admin_table?.ADMIN_ID}`, deleteAdminByAdminIdAPI);
 router.get(`/school/:${admin_table.SCHOOL_ID}`, getAllAdminsBySchoolIdAPI);
 
 module.exports = router;
