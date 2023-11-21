@@ -5,7 +5,8 @@ const { createAdminAPI,
   getAdminByAdminIdAPI,
   updateAdminByIdAPI,
   deleteAdminByAdminIdAPI,
-  getAllAdminsBySchoolIdAPI
+  getAllAdminsBySchoolIdAPI,
+  createAdminUserByAdminIdAPI
 } = require('../controllers/adminController.js');
 
 router.post(`/`, createAdminAPI);
@@ -13,5 +14,6 @@ router.get(`/${admin_table?.ADMIN_ID}`, getAdminByAdminIdAPI);
 router.put(`/`, updateAdminByIdAPI);
 router.delete(`/:${admin_table?.ADMIN_ID}`, deleteAdminByAdminIdAPI);
 router.get(`/school/:${admin_table.SCHOOL_ID}`, getAllAdminsBySchoolIdAPI);
+router.get(`/create_user/:${admin_table?.ADMIN_ID}`, createAdminUserByAdminIdAPI);
 
 module.exports = router;

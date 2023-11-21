@@ -165,14 +165,14 @@ const createTeacherUser = async (req, res) => {
     // console.log("generatedOtp=>>", generatedOtp);
     const otpToken = await createTokenForObject(generatedOtpObj);
     const sendTo = teacherObj?.[teacher_table?.EMAIL];
-    const subject = "Create Account on SMS";
-    const body = `Click this link to Create account
+    const subject = "Create Teacher Account on SMS";
+    const body = `Click this link to Create Teacher Account
       ${process.env.FRONT_END_URL}/create_user/${otpToken}
     `;
     const mailResponse = await sendMail(sendTo, subject, body);
     // res.status(200).json({ message: mailResponse });
     // console.log("teacher_id=>>", teacher_id);
-    res.status(200).json({ message: "mail sent" });
+    res.status(200).json({ message: "Mail sent to the Teacher's email address" });
   }catch(error) {
     res.status(400).json({ error: error.message });
   }

@@ -15,6 +15,9 @@ const { getTeacherById } = require('../methods/teacher_methods/getTeacherById.js
 const { setUsernameByTeacherId } = require('../methods/teacher_methods/setUsernameByTeacherId.js');
 const { getUserObjFromUsername } = require('../methods/users_methods/getUserObjFromUsername.js');
 const { createUserByGivenAllDetails } = require('../methods/users_methods/createUserByGivenAllDetails.js');
+const { getAdminByAdminId } = require('../methods/admin_methods/getAdminByAdminId.js');
+const admin_table = require('../constants/admin_table.js');
+const { setUsernameByAdminId } = require('../methods/admin_methods/setUsernameByAdminId.js');
 
 const getUserObjByUserId = async (user_id) => {
   const query = `SELECT id, ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.CREATED_ON}, ${users.LAST_LOGIN} FROM users WHERE ${users.USER_ID} = $1 LIMIT 1`;
@@ -134,8 +137,20 @@ const createUserByUsernameAndPassword = async (req, res) => {
       const school_id = teacher?.[teacher_table?.SCHOOL_ID];
       const email = teacher?.[teacher_table?.EMAIL];
       const teacher_id = teacher?.[teacher_table?.TEACHER_ID];
-      const updatedUser = await setUsernameByTeacherId(teacher_id, username);
-      if (!updatedUser) throw Error("Couldn't set username to teacher");
+      const updatedTeacher = await setUsernameByTeacherId(teacher_id, username);
+      if (!updatedTeacher) throw Error("Couldn't set username to teacher");
+      const createdUser = await createUserByGivenAllDetails(school_id, email, username, password, user_type);
+      if (!createdUser) throw Error("Couldn't find created user");
+      await deleteVerification(verificationUniqueId, verificationPurpose);
+      res.status(200).json(createdUser);
+    } if(user_type === "admin"){
+      const admin = await getAdminByAdminId(verificationUniqueId);
+      if(!admin) throw Error("Couldn't find admin")
+      const school_id = admin?.[admin_table?.SCHOOL_ID];
+      const email = admin?.[admin_table?.EMAIL];
+      const admin_id = admin?.[admin_table?.ADMIN_ID];
+      const updatedAdmin = await setUsernameByAdminId(admin_id, username);
+      if(!updatedAdmin) throw Error("Couldn't set username to admin");
       const createdUser = await createUserByGivenAllDetails(school_id, email, username, password, user_type);
       if (!createdUser) throw Error("Couldn't find created user");
       await deleteVerification(verificationUniqueId, verificationPurpose);

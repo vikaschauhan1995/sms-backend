@@ -5,7 +5,7 @@ const db = require('../../db');
 
 const getAdminByAdminId = async (admin_id) => {
   if (!admin_id) throw Error("Admin Id is required");
-  const getAdminQuery = `SELECT * FROM admin ${admin_table?.ADMIN_ID} = $1 limit 1`;
+  const getAdminQuery = `SELECT * FROM admin WHERE ${admin_table?.ADMIN_ID} = $1 limit 1`;
   const getAdminResponse = await db.query(getAdminQuery, [admin_id]);
   return getAdminResponse?.rows?.[0];
 }

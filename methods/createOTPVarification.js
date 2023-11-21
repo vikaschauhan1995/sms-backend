@@ -13,7 +13,7 @@ const createOTPVarification = async (unique_id, purpose) => {
     // console.log("updatePersistentVerificationResponse?.rows[0]=>", updatePersistentVerificationResponse?.rows[0])
     return updatePersistentVerificationResponse?.rows[0];
   }else{
-    const generate_password_query = `INSERT INTO verification (${verification_table?.UNIQUE_ID}, ${verification_table?.PURPOSE}, ${verification_table?.OTP}) VALUES($1, $2, $3)`;
+    const generate_password_query = `INSERT INTO verification (${verification_table?.UNIQUE_ID}, ${verification_table?.PURPOSE}, ${verification_table?.OTP}) VALUES($1, $2, $3) RETURNING *`;
     const newVerification = await db.query(generate_password_query, [unique_id, purpose, otp]);
     // console.log("newVerification?.rows[0]=>>", newVerification?.rows[0]);
     return newVerification?.rows[0];

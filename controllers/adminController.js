@@ -15,6 +15,7 @@ const { getAdminByAdminId } = require('../methods/admin_methods/getAdminByAdminI
 const { updateAdminById } = require('../methods/admin_methods/updateAdminById');
 const { deleteAdminByAdminId } = require('../methods/admin_methods/deleteAdminByAdminId');
 const { getAllAdminsBySchoolId } = require('../methods/admin_methods/getAllAdminsBySchoolId');
+const { deleteUserByUsername } = require('../methods/users_methods/deleteUserByUsername');
 
 
 const createAdminAPI = async (req, res) => {
@@ -51,6 +52,13 @@ const updateAdminByIdAPI = async (req, res) => {
 const deleteAdminByAdminIdAPI = async (req, res) => {
   try{
     const { admin_id } = req?.params;
+    const admin = await getAdminByAdminId(admin_id);
+    if(!admin) throw Error("Admin not found");
+    const username = admin?.[admin_table?.USERNAME];
+    if(username){
+      const deletedUser = await deleteUserByUsername(username);
+      if(!deletedUser) throw Error("Couldn't delete teacher related user");
+    }
     const deletedAdmin = await deleteAdminByAdminId(admin_id);
     res.status(200).json(deletedAdmin);
   }catch(error){
@@ -68,10 +76,35 @@ const getAllAdminsBySchoolIdAPI = async (req, res) => {
   }
 }
 
+const createAdminUserByAdminIdAPI = async (req, res) => {
+  try{
+    const { admin_id } = req?.params;
+    const adminObj = await getAdminByAdminId(admin_id);
+    if(!adminObj) throw Error("Coundn't find admin");
+    const generatedOtpVerificationRespose = await createOTPVarification(admin_id, CREATE_USER);
+    if(!generatedOtpVerificationRespose) throw Error("Coundn't create OTP for verification")
+    const generatedOtpObj = {
+      ...generatedOtpVerificationRespose,
+      [users_table?.USER_TYPE]: "admin"
+    };
+    const otpToken = await createTokenForObject(generatedOtpObj);
+    const sendTo = adminObj?.[admin_table?.EMAIL];
+    const subject = 'Create Admin Account on SMS';
+    const body = `Click this link to Create Admin Account
+      ${process.env.FRONT_END_URL}/create_user/${otpToken}
+    `;
+    await sendMail(sendTo, subject, body);
+    res.status(200).json({ message: "Mail sent to the Admin's email address" });
+  }catch(error){
+    res.status(400).json({ error: error.message });
+  }
+}
+
 module.exports = {
   createAdminAPI,
   getAdminByAdminIdAPI,
   updateAdminByIdAPI,
   deleteAdminByAdminIdAPI,
-  getAllAdminsBySchoolIdAPI
+  getAllAdminsBySchoolIdAPI,
+  createAdminUserByAdminIdAPI
 }
