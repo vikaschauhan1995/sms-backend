@@ -46,15 +46,15 @@ const getStudentsByClassId = async (req, res) => {
   try{
     // console.log("req?.user?.user_id===>>>", req?.user?.user_id);
     const { class_id } = req.params;
-    const created_by = req?.user?.user_id;
-    if(!created_by) {
-      throw Error("Created by is not available");
+    const school_id = req?.user?.[users_table?.SCHOOL_ID];
+    if(!school_id) {
+      throw Error("School id is not available");
     }
     if(!class_id){
       throw Error("Class id is required");
     }
-    const getStudentsByClassIdRequest = `SELECT * FROM student WHERE ${student_table?.CREATED_BY} = $1 AND ${student_table?.CLASS_ID} = $2 ORDER BY id DESC`;
-    const getStudentsByClassIdResponse = await db.query(getStudentsByClassIdRequest, [created_by, class_id]);
+    const getStudentsByClassIdRequest = `SELECT * FROM student WHERE ${student_table?.SCHOOL_ID} = $1 AND ${student_table?.CLASS_ID} = $2 ORDER BY id DESC`;
+    const getStudentsByClassIdResponse = await db.query(getStudentsByClassIdRequest, [school_id, class_id]);
     res.status(200).json(getStudentsByClassIdResponse?.rows);
   }catch(error){
     res.status(400).json({ error: error.message });
