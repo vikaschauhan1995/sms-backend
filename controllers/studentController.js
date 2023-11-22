@@ -8,6 +8,12 @@ const student_table = require('../constants/student_table');
 const { getClassByIdAndCreatedBy } = require('./classesController');
 const validateEmail = require('../utility/validateEmail');
 const nodemailer = require('nodemailer');
+const { getStudentObjByStudentId } = require('../methods/student_methods/getStudentObjByStudentId');
+const createOTPVarification = require('../methods/createOTPVarification');
+const { CREATE_USER } = require('../constants/verification_table');
+const createTokenForObject = require('../methods/createTokenForObject');
+const sendMail = require('../methods/sendMail');
+const { deleteUserByUsername } = require('../methods/users_methods/deleteUserByUsername');
 
 const createStudent = async (req, res) => {
   try{
@@ -26,10 +32,10 @@ const createStudent = async (req, res) => {
     if(!school_id){
       throw Error("School id is not available");
     }
-    const class_ = await getClassByIdAndCreatedBy(class_id, created_by);
-    if(!class_){
-      throw Error("Class Id is not valid or belongs to you");
-    }
+    // const class_ = await getClassByIdAndCreatedBy(class_id, created_by);
+    // if(!class_){
+    //   throw Error("Class Id is not valid or belongs to you");
+    // }
     if(validateEmail(email) === false){
       throw Error("Email is not valid");
     }
@@ -92,37 +98,71 @@ const deleteStudentByStudentId = async (req, res) => {
     if(!student_id){
       throw Error('Student id is not available');
     }
+    const student = await getStudentObjByStudentId(student_id);
+    if(!student) throw Error("Student not found");
+    const username = student?.[student_table?.USERNAME];
+    if(username){
+      const deletedUser = await deleteUserByUsername(username);
+      if(!deletedUser) throw Error("Couldn't delete Student related user");
+    }
     const deleteStudentQuery = `DELETE FROM student WHERE ${student_table?.STUDENT_ID} = $1 RETURNING *`;
     const deleteStudentResponse = await db.query(deleteStudentQuery, [student_id]);
-    res.status(200).json(deleteStudentResponse?.rows?.[0]);
+    const deletedStudent = deleteStudentResponse?.rows?.[0];
+    if(!deletedStudent) throw Error("Couldn't delete Student");
+    res.status(200).json(deletedStudent);
   }catch(error){
     res.status(400).json({ error: error.message });
   }
 }
 
-const sendMail = (req, res) => {
+// const sendMail = (req, res) => {
+//   try{
+//     const transporter = nodemailer.createTransport({
+//       service: 'Gmail', // Use your email service provider (e.g., 'Gmail', 'Outlook', etc.)
+//       auth: {
+//         user: 'coolestvikas1995@gmail.com',
+//         pass: process.env.GOOGLE_APP_PASSWORD,
+//       },
+//     });
+//     const mailOptions = {
+//       from: 'no-reply@sms.com',
+//       to: 'vikas.chauhan.bb@gmail.com',
+//       subject: 'Hello from Node.js!',
+//       text: 'This is a test email sent from Node.js with Nodemailer.',
+//     };
+//     transporter.sendMail(mailOptions, (error, info) => {
+//       if (error) {
+//         console.error('Error sending email:', error);
+//       } else {
+//         console.log('Email sent:', info.response);
+//       }
+//     });
+//     res.status(200).json({ mail: "mail sent scucessfully"});;
+//   }catch(error){
+//     res.status(400).json({ error: error.message });
+//   }
+// }
+
+const createStudentUserbyStudentIdAPI = async (req, res) => {
   try{
-    const transporter = nodemailer.createTransport({
-      service: 'Gmail', // Use your email service provider (e.g., 'Gmail', 'Outlook', etc.)
-      auth: {
-        user: 'coolestvikas1995@gmail.com',
-        pass: process.env.GOOGLE_APP_PASSWORD,
-      },
-    });
-    const mailOptions = {
-      from: 'no-reply@sms.com',
-      to: 'vikas.chauhan.bb@gmail.com',
-      subject: 'Hello from Node.js!',
-      text: 'This is a test email sent from Node.js with Nodemailer.',
+    const { student_id } = req?.params;
+    if(!student_id) throw Error("Student id is required");
+    const student = await getStudentObjByStudentId(student_id);
+    if(!student) throw Error("Couldn't find student");
+    const generatedOtpVerificationRespose = await createOTPVarification(student_id, CREATE_USER);
+    if(!generatedOtpVerificationRespose) throw Error("Coundn't create OTP for verification");
+    const generatedOtpObj = {
+      ...generatedOtpVerificationRespose,
+      [users_table?.USER_TYPE]: "student"
     };
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error('Error sending email:', error);
-      } else {
-        console.log('Email sent:', info.response);
-      }
-    });
-    res.status(200).json({ mail: "mail sent scucessfully"});;
+    const otpToken = await createTokenForObject(generatedOtpObj);
+    const sendTo = student?.[student_table?.EMAIL];
+    const subject = 'Create Student Account on SMS';
+    const body = `Click this link to Create Student Account
+      ${process.env.FRONT_END_URL}/create_user/${otpToken}
+    `;
+    await sendMail(sendTo, subject, body);
+    res.status(200).json({ message: "Mail sent to the Student's email address" });
   }catch(error){
     res.status(400).json({ error: error.message });
   }
@@ -133,7 +173,8 @@ module.exports = {
   getStudentsByClassId,
   updateStudentByStudentId,
   deleteStudentByStudentId,
-  sendMail
+  createStudentUserbyStudentIdAPI
+  // sendMail
   // getAllStudentsByUserType,
   // getStudent,
   // updateStudent,

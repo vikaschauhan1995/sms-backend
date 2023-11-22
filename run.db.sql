@@ -65,6 +65,7 @@ CREATE TABLE student(
   student_id VARCHAR(255) UNIQUE NOT NULL,
   created_by VARCHAR(255) NOT NULL,
   school_id VARCHAR(255) NOT NULL,
+  username VARCHAR (255) UNIQUE,
   first_name VARCHAR(255) NOT NULL,
   last_name VARCHAR(255) NOT NULL,
   class_id integer NOT NULL,

@@ -18,6 +18,9 @@ const { createUserByGivenAllDetails } = require('../methods/users_methods/create
 const { getAdminByAdminId } = require('../methods/admin_methods/getAdminByAdminId.js');
 const admin_table = require('../constants/admin_table.js');
 const { setUsernameByAdminId } = require('../methods/admin_methods/setUsernameByAdminId.js');
+const { getStudentObjByStudentId } = require('../methods/student_methods/getStudentObjByStudentId.js');
+const student_table = require('../constants/student_table.js');
+const { setUsernameByStudentId } = require('../methods/student_methods/setUsernameByStudentId.js');
 
 const getUserObjByUserId = async (user_id) => {
   const query = `SELECT id, ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.CREATED_ON}, ${users.LAST_LOGIN} FROM users WHERE ${users.USER_ID} = $1 LIMIT 1`;
@@ -151,6 +154,18 @@ const createUserByUsernameAndPassword = async (req, res) => {
       const admin_id = admin?.[admin_table?.ADMIN_ID];
       const updatedAdmin = await setUsernameByAdminId(admin_id, username);
       if(!updatedAdmin) throw Error("Couldn't set username to admin");
+      const createdUser = await createUserByGivenAllDetails(school_id, email, username, password, user_type);
+      if (!createdUser) throw Error("Couldn't find created user");
+      await deleteVerification(verificationUniqueId, verificationPurpose);
+      res.status(200).json(createdUser);
+    } if(user_type === "student"){
+      const student = await getStudentObjByStudentId(verificationUniqueId);
+      if(!student) throw Error("Couldn't find student");
+      const school_id = student?.[student_table?.SCHOOL_ID];
+      const email = student?.[student_table?.EMAIL];
+      const student_id = student?.[student_table?.STUDENT_ID];
+      const updatedStudent = await setUsernameByStudentId(student_id, username);
+      if(!updatedStudent) throw Error("Couldn't set username to student");
       const createdUser = await createUserByGivenAllDetails(school_id, email, username, password, user_type);
       if (!createdUser) throw Error("Couldn't find created user");
       await deleteVerification(verificationUniqueId, verificationPurpose);
