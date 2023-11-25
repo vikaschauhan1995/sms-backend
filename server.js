@@ -16,6 +16,7 @@ const navRouter = require('./routes/nav');
 const teacherAttendanceRouter = require('./routes/teacher_attendance')
 const classesRouter = require('./routes/classes')
 const adminRouter = require('./routes/admin')
+const sessionYearRouter = require('./routes/session_year');
 
 const tokenValidation = require('./middleware/tokenValidation');
 
@@ -44,6 +45,7 @@ app.use('/api/nav', tokenValidation, navRouter);
 app.use('/api/teacher_attendance', tokenValidation, teacherAttendanceRouter);
 app.use('/api/classes', tokenValidation, classesRouter);
 app.use('/api/admin', tokenValidation, adminRouter);
+app.use('/api/session_year', tokenValidation, sessionYearRouter);
 
 db.connect().then(() => {
   app.listen(PORT, () => {

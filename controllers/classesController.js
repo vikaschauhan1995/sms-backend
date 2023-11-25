@@ -1,6 +1,7 @@
 const db = require("../db");
 const classes_table = require("../constants/classes_table")
 const { getSchoolBySchoolId } = require('./schoolController.js');
+const { getClassListBySchoolId } = require("../methods/classes_methods/getClassListBySchoolId.js");
 
 const getClassById = async (id) => {
   if(!id) throw Error("Class Id is required");
@@ -88,6 +89,16 @@ const getClass = async (req, res) => {
   }
 }
 
+const getClassList = async (req, res) => {
+  try{
+    const { user_id, school_id } = req?.user;
+    const classList = await getClassListBySchoolId(school_id);
+    res.status(200).json(classList);
+  }catch(error){
+    res.status(400).json({ error: error.message });
+  }
+}
+
 module.exports = {
   saveClass,
   updateClass,
@@ -95,5 +106,6 @@ module.exports = {
   deleteClassByClassId,
   getClass,
   getClassById,
-  getClassByIdAndCreatedBy
+  getClassByIdAndCreatedBy,
+  getClassList
 }
