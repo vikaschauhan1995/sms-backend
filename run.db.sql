@@ -145,6 +145,18 @@ CREATE TABLE admin(
   last_login TIMESTAMP
 );
 
+CREATE TABLE student_attendance(
+  id serial PRIMARY KEY,
+  student_id VARCHAR(255) NOT NULL,
+  class_id INT NOT NULL,
+  school_id VARCHAR(255) NOT NULL,
+  created_by VARCHAR(255) NOT NULL,
+  is_present BOOLEAN NOT NULL,
+  comment VARCHAR(255) NOT NULL,
+  created_date DATE DEFAULT CURRENT_DATE,
+  created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 INSERT INTO session_year (year, session_name) VALUES (2023, '2023-2024');
 
 -- Commit the transaction
