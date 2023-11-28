@@ -1,12 +1,20 @@
 const student_table = require("../constants/student_table");
+const { getAttendanceOfAStudent } = require("../methods/student_attendance_methods/getAttendanceOfAStudent");
+const { getStudentAttendanceByCreatedDate } = require("../methods/student_attendance_methods/getStudentAttendanceByCreatedDate");
 const { saveStudentAttendance } = require("../methods/student_attendance_methods/saveStudentAttendance");
+const { updateAttendanceOfStudent } = require("../methods/student_attendance_methods/updateAttendanceOfStudent");
 const { getStudentObjByStudentId } = require("../methods/student_methods/getStudentObjByStudentId");
+const getTodaysDate = require("../utility/getTodaysDate");
 
 
 
-const getStudentAttendanceOfClass = async (req, res) => {
+const getTodaysAttendanceOfClassStudent = async (req, res) => {
   try{
-    // res.status(200).json(sessionYears);
+    const { school_id } = req?.user;
+    const { class_id } = req?.params;
+    const todays_date = getTodaysDate();
+    const studentAttendanceList = await getStudentAttendanceByCreatedDate(school_id, class_id, todays_date);
+    res.status(200).json(studentAttendanceList);
   }catch(error){
     res.status(400).json({ error: error.message });
   }
@@ -21,16 +29,26 @@ const postStudentAttendance = async (req, res) => {
     const student = await getStudentObjByStudentId(student_id);
     if(!student) throw Error("Couldn't find student in database");
     if(student?.[student_table?.SCHOOL_ID] !== school_id) throw Error("Student doesn't belong to this school");
+
     const class_id = student?.[student_table?.CLASS_ID];
-    const savedStudentAttendance = await saveStudentAttendance(school_id, class_id, user_id, student_id, is_present);
-    res.status(200).json(savedStudentAttendance);
+    const todays_date = getTodaysDate();
+    const attendanceOfStudent = await getAttendanceOfAStudent(student_id, todays_date);
+    if(attendanceOfStudent){
+      const updatedAttendance = await updateAttendanceOfStudent(student_id, todays_date, is_present);
+      res.status(200).json(updatedAttendance);
+    }else{
+      const savedStudentAttendance = await saveStudentAttendance(school_id, class_id, user_id, student_id, is_present);
+      res.status(200).json(savedStudentAttendance);
+    }
   }catch(error){
-    res.status(400).json({ error: error.message });
+    if (!res.headersSent) {
+      res.status(400).json({ error: error.message });
+    }
   }
 }
 
 
 module.exports = {
-  getStudentAttendanceOfClass,
+  getTodaysAttendanceOfClassStudent,
   postStudentAttendance
 }
