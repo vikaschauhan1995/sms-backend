@@ -14,6 +14,7 @@ const { CREATE_USER } = require('../constants/verification_table');
 const createTokenForObject = require('../methods/createTokenForObject');
 const sendMail = require('../methods/sendMail');
 const { deleteUserByUsername } = require('../methods/users_methods/deleteUserByUsername');
+const { getStudentListByClassId } = require('../methods/student_methods/getStudentListByClassId');
 
 const createStudent = async (req, res) => {
   try{
@@ -168,12 +169,25 @@ const createStudentUserbyStudentIdAPI = async (req, res) => {
   }
 }
 
+const getStudentListByClassIdAPI = async (req, res) => {
+  try{
+    const { class_id } = req.params;
+    if(!class_id) throw Error('Class id is required');
+    const studentListOfClass = await getStudentListByClassId(class_id);
+    res.status(200).json(studentListOfClass);
+  }catch(error){
+    res.status(400).json({ error: error.message });
+  }
+}
+
+
 module.exports = {
   createStudent,
   getStudentsByClassId,
   updateStudentByStudentId,
   deleteStudentByStudentId,
-  createStudentUserbyStudentIdAPI
+  createStudentUserbyStudentIdAPI,
+  getStudentListByClassIdAPI
   // sendMail
   // getAllStudentsByUserType,
   // getStudent,
