@@ -30,7 +30,7 @@ GROUP BY
 ORDER BY
   created_date desc;
 `;
-  console.log("getClassAttendanceQuery=>", getClassAttendanceQuery);
+  // console.log("getClassAttendanceQuery=>", getClassAttendanceQuery);
   const classAttendanceResponse = await db.query(getClassAttendanceQuery, []);
   return classAttendanceResponse?.rows;
 }

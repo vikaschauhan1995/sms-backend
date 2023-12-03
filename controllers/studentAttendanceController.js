@@ -1,13 +1,15 @@
 const student_table = require("../constants/student_table");
 const { getAttendanceOfAStudent } = require("../methods/student_attendance_methods/getAttendanceOfAStudent");
-const { getStudentAttendanceByCreatedDate } = require("../methods/student_attendance_methods/getStudentAttendanceByCreatedDate");
+const { getStudentsOfClassAttendanceByCreatedDate } = require("../methods/student_attendance_methods/getStudentsOfClassAttendanceByCreatedDate");
 const { saveStudentAttendance } = require("../methods/student_attendance_methods/saveStudentAttendance");
+const { saveStudentAttendanceByCreatedDate } = require("../methods/student_attendance_methods/saveStudentAttendanceByCreatedDate");
 const { updateAttendanceOfStudent } = require("../methods/student_attendance_methods/updateAttendanceOfStudent");
 const { getStudentObjByStudentId } = require("../methods/student_methods/getStudentObjByStudentId");
 const getTodaysDate = require("../utility/getTodaysDate");
 const classes_table = require("../constants/classes_table");
 const { classAttendanceOfRange } = require("../methods/class_attendance_methods/classAttendanceOfRange");
 const { getClassObjById } = require("../methods/classes_methods/getClassById");
+const { getStudentAttendanceByCreatedDate } = require("../methods/student_attendance_methods/getStudentAttendanceByCreatedDate");
 
 
 const getTodaysAttendanceOfClassStudent = async (req, res) => {
@@ -15,7 +17,7 @@ const getTodaysAttendanceOfClassStudent = async (req, res) => {
     const { school_id } = req?.user;
     const { class_id } = req?.params;
     const todays_date = getTodaysDate();
-    const studentAttendanceList = await getStudentAttendanceByCreatedDate(school_id, class_id, todays_date);
+    const studentAttendanceList = await getStudentsOfClassAttendanceByCreatedDate(school_id, class_id, todays_date);
     res.status(200).json(studentAttendanceList);
   }catch(error){
     res.status(400).json({ error: error.message });
@@ -43,6 +45,31 @@ const postStudentAttendance = async (req, res) => {
       res.status(200).json(savedStudentAttendance);
     }
   }catch(error){
+    if (!res.headersSent) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+}
+
+const postStudentAttendanceByDate = async (req, res) => {
+  try {
+    const { school_id, user_id } = req?.user;
+    const { student_id, is_present, created_date } = req?.body;
+    if(!student_id) throw Error('Student Id is required');
+    if(typeof is_present !== 'boolean') throw Error('Student Attendance is_present must be a boolean');
+    if(!created_date) throw Error('Student Attendance created date is required');
+    const student = await getStudentObjByStudentId(student_id);
+    if(!student) throw Error('Student not found in our database');
+    const class_id_of_student = student?.[student_table?.CLASS_ID];
+    const studentAttendance = await getStudentAttendanceByCreatedDate(student_id, created_date);
+    if(studentAttendance) {
+      const updatedAttendance = await updateAttendanceOfStudent(student_id, created_date, is_present);
+      res.status(200).json(updatedAttendance);
+    }else {
+      const savedStudentAttendance = await saveStudentAttendanceByCreatedDate(school_id, class_id_of_student, user_id, created_date, student_id, is_present);
+      res.status(200).json(savedStudentAttendance);
+    }
+  } catch(error) {
     if (!res.headersSent) {
       res.status(400).json({ error: error.message });
     }
@@ -77,5 +104,6 @@ const getClassAttendanceOfMonth = async (req, res) => {
 module.exports = {
   getTodaysAttendanceOfClassStudent,
   postStudentAttendance,
-  getClassAttendanceOfMonth
+  getClassAttendanceOfMonth,
+  postStudentAttendanceByDate
 }
