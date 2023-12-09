@@ -1,5 +1,10 @@
 const teacher_attendance_table = require("../constants/teacher_attendance_table");
 const db = require("../db");
+const { getTeacherAttendanceByCreatedDate } = require("../methods/teacher_attendance_methods/getTeacherAttendanceByCreatedDate");
+const { saveTeacherAttendanceByCreatedDate } = require("../methods/teacher_attendance_methods/saveTeacherAttendanceByCreatedDate");
+const { teacherAttendanceOfRange } = require("../methods/teacher_attendance_methods/teacherAttendanceOfRange");
+const { updateAttendanceOfTeacher } = require("../methods/teacher_attendance_methods/updateAttendanceOfTeacher");
+const { getTeacherById } = require("../methods/teacher_methods/getTeacherById");
 const getTodaysDate = require("../utility/getTodaysDate")
 
 const updateTeacherAttendance = async () => {
@@ -9,25 +14,28 @@ const updateTeacherAttendance = async () => {
 const postTeacherAttendance = async (req, res) => {
   try {
     // const { school_id } = req?.params;
-    const { teacher_id, school_id, created_by, created_date, is_present, comment } = req?.body;
+    const { school_id, user_id: created_by } = req?.user;
+    const { teacher_id, created_date, is_present, comment } = req?.body;
     let comment_ = '';
-    // console.log("req.body=>",req.body);
-    if (!teacher_id || !school_id || !created_by || typeof is_present != "boolean" || !created_date) {
-      throw Error("Body data is incomplete");
-    }
+    if(!teacher_id) throw Error('Teacher id must be provided');
+    if(typeof is_present != "boolean") throw Error('Teacher Attendance must be a boolean');
+    if(!created_date) throw Error('Attendance date must be provided');
     
-    const checkTeacherAttendanceAlreadyExists = `SELECT * FROM teacher_attendance WHERE ${teacher_attendance_table?.CREATED_BY} = $1 AND ${teacher_attendance_table?.TEACHER_ID} = $2 AND ${teacher_attendance_table?.CREATED_DATE} = $3`;
-    const todaysDate = getTodaysDate();
-    const checkTeacherAttendanceAlreadyExistsResponse = await db.query(checkTeacherAttendanceAlreadyExists, [created_by, teacher_id, created_date]);
+    const checkTeacherAttendanceAlreadyExists = `SELECT * FROM teacher_attendance WHERE ${teacher_attendance_table?.TEACHER_ID} = $1 AND ${teacher_attendance_table?.CREATED_DATE} = $2`;
+    // const todaysDate = getTodaysDate();
+    const checkTeacherAttendanceAlreadyExistsResponse = await db.query(checkTeacherAttendanceAlreadyExists, [teacher_id, created_date]);
     
-    if(checkTeacherAttendanceAlreadyExistsResponse.rows.length > 0){
-      return await updateTeacherAttendanceController(req, res);
+    if(checkTeacherAttendanceAlreadyExistsResponse?.rows?.length > 0){
+      const updatedAttendance = await updateAttendanceOfTeacher(teacher_id, created_date, is_present);
+      res.status(200).json(updatedAttendance);
+    }else {
+      const savedTeacherAttendance = await saveTeacherAttendanceByCreatedDate(school_id, created_by, created_date, teacher_id, is_present);
+      res.status(200).json(savedTeacherAttendance);
     }
-    const addAttendanceQuery = `INSERT INTO teacher_attendance(${teacher_attendance_table?.TEACHER_ID}, ${teacher_attendance_table?.SCHOOL_ID}, ${teacher_attendance_table?.CREATED_BY}, ${teacher_attendance_table?.IS_PRESENT}, ${teacher_attendance_table?.CREATED_DATE}, ${teacher_attendance_table?.COMMENT}) VALUES($1, $2, $3, $4, $5, $6) RETURNING *`;
-    const addAttendanceQueryResponse = await db.query(addAttendanceQuery, [teacher_id, school_id, created_by, is_present, created_date, comment_]);
-    res.status(200).json(addAttendanceQueryResponse?.rows?.[0]);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    if (!res.headersSent) {
+      res.status(400).json({ error: error.message });
+    }
   }
 }
 
@@ -82,17 +90,38 @@ const getTeacherAttendanceOfMonth = async (req, res) => {
   try {
     const { YYYY, MM } = req.params;
     const { school_id } = req?.user;
-    const S_YYYYMM = YYYY + '-' + MM + '-01';
-    const L_YYYYMM = YYYY + '-' + (MM >= 12 ? '01' : parseInt(MM) + 1) + '-01';
-    
 
-    const getTeacherAttendanceQuery = `SELECT ta.*, t.first_name, t.last_name FROM teacher_attendance as ta LEFT JOIN teacher as t ON ta.teacher_id = t.teacher_id WHERE ta.${teacher_attendance_table?.CREATED_DATE} >= $1 AND ta.${teacher_attendance_table?.CREATED_DATE} < $2 AND ta.${teacher_attendance_table?.SCHOOL_ID} = $3`;
-    // const getTeacherAttendanceQuery_query = `SELECT * FROM teacher_attendance WHERE ${teacher_attendance_table?.CREATED_DATE} >= '${S_YYYYMM}' AND ${teacher_attendance_table?.CREATED_DATE} < '${L_YYYYMM}' AND ${teacher_attendance_table?.SCHOOL_ID} = '${school_id}'`;
-    // console.log("getTeacherAttendanceQuery_query=>", getTeacherAttendanceQuery_query);
-    const getTeacherAttendanceQueryResponse = await db.query(getTeacherAttendanceQuery, [S_YYYYMM, L_YYYYMM, school_id]);
-    res.status(200).json(getTeacherAttendanceQueryResponse?.rows);
+    const start_date = YYYY + '-' + MM + '-01';
+    const end_date = (MM >= 12 ? parseInt(YYYY) + 1 : YYYY) + '-' + (MM >= 12 ? '01' : parseInt(MM) + 1) + '-01';
+    const teacherAttendance = await teacherAttendanceOfRange(school_id, start_date, end_date);
+    // console.log("teacherAttendance===>>", teacherAttendance);
+    res.status(200).json(teacherAttendance);
   } catch(error) {
     res.status(400).json({ error: error.message });
+  }
+}
+
+const postTeacherAttendanceByDate = async (req, res) => {
+  try {
+    const { school_id, user_id } = req?.user;
+    const { teacher_id, is_present, created_date } = req?.body;
+    if(!teacher_id) throw Error('Teacher Id is required');
+    if(typeof is_present !== 'boolean') throw Error('Teacher Attendance is_present must be a boolean');
+    if(!created_date) throw Error('Teacher Attendance created date is required');
+    const teacher = await getTeacherById(teacher_id);
+    if(!teacher) throw Error('Teacher not found in our database');
+    const teacherAttendance = await getTeacherAttendanceByCreatedDate(teacher_id, created_date);
+    if(teacherAttendance) {
+      const updatedAttendance = await updateAttendanceOfTeacher(teacher_id, created_date, is_present);
+      res.status(200).json(updatedAttendance);
+    }else {
+      const savedTeacherAttendance = await saveTeacherAttendanceByCreatedDate(school_id, user_id, created_date, teacher_id, is_present);
+      res.status(200).json(savedTeacherAttendance);
+    }
+  } catch(error) {
+    if (!res.headersSent) {
+      res.status(400).json({ error: error.message });
+    }
   }
 }
 
@@ -101,5 +130,6 @@ module.exports = {
   postTeacherAttendance,
   updateTeacherAttendanceController,
   getTeacherAttendanceByDateAndSchoolId,
-  getTeacherAttendanceOfMonth
+  getTeacherAttendanceOfMonth,
+  postTeacherAttendanceByDate
 };

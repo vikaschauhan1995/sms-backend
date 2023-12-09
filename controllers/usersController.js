@@ -174,7 +174,9 @@ const createUserByUsernameAndPassword = async (req, res) => {
       throw Error("Couldn't create user");
     }
   } catch (error) {
-    res.status(400).json({ error: error.message });;
+    if (!res.headersSent) {
+      res.status(400).json({ error: error.message });
+    }
   }
 }
 
