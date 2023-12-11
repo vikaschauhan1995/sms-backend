@@ -120,6 +120,7 @@ CREATE TABLE classes(
   created_by VARCHAR(255) NOT NULL,
   class_name VARCHAR(55) NOT NULL,
   section VARCHAR(55) NOT NULL,
+  fee INT NOT NULL,
   created_year INT NOT NULL,
   created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

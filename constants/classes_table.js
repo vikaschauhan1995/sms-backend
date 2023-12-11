@@ -3,6 +3,7 @@ const classes_table = {
   CREATED_BY: "created_by",
   CLASS_NAME: "class_name",
   SECTION: "section",
+  FEE: "fee",
   CREATED_YEAR: "created_year",
   CREATED_ON: "created_on"
 }
