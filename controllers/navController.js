@@ -6,10 +6,11 @@ const navListDetails = {
   ],
   admin: [
     { name: 'Teacher', url: '/teacher' },
-    { name: 'Student', url: '/student' },
+    // { name: 'Student', url: '/student' },
     { name: 'Teacher Attendance', url: '/teacher_attendance' },
     { name: 'Class Attendance', url: '/class_attendance' },
-    { name: 'Class', url: '/class' }
+    { name: 'Class', url: '/class' },
+    { name: 'Fee', url: '/student_fee'}
   ],
   teacher: [
     { name: 'Student Attendance', url: '/student_attendance' }

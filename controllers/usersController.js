@@ -21,6 +21,7 @@ const { setUsernameByAdminId } = require('../methods/admin_methods/setUsernameBy
 const { getStudentObjByStudentId } = require('../methods/student_methods/getStudentObjByStudentId.js');
 const student_table = require('../constants/student_table.js');
 const { setUsernameByStudentId } = require('../methods/student_methods/setUsernameByStudentId.js');
+const { getUserObjectsByEmail } = require('../methods/users_methods/getUserObjectsByEmail.js');
 
 const getUserObjByUserId = async (user_id) => {
   const query = `SELECT id, ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.CREATED_ON}, ${users.LAST_LOGIN} FROM users WHERE ${users.USER_ID} = $1 LIMIT 1`;
@@ -180,6 +181,22 @@ const createUserByUsernameAndPassword = async (req, res) => {
   }
 }
 
+const getUsersByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+    if (!email) {
+      throw Error("User type not specified");
+    }
+    if (validateEmail(email) === false) {
+      throw Error("Email is not valid");
+    }
+    const users = await getUserObjectsByEmail(email);
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+}
+
 module.exports = {
   getUserObjByUserId,
   getUsersBySchool,
@@ -187,5 +204,6 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
-  createUserByUsernameAndPassword
+  createUserByUsernameAndPassword,
+  getUsersByEmail
 }
