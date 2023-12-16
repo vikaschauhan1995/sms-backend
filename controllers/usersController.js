@@ -22,6 +22,10 @@ const { getStudentObjByStudentId } = require('../methods/student_methods/getStud
 const student_table = require('../constants/student_table.js');
 const { setUsernameByStudentId } = require('../methods/student_methods/setUsernameByStudentId.js');
 const { getUserObjectsByEmail } = require('../methods/users_methods/getUserObjectsByEmail.js');
+const createOTPVarification = require('../methods/createOTPVarification.js');
+const { CHANGE_PASSWORD } = require('../constants/auth_constants.js');
+const createTokenForObject = require('../methods/createTokenForObject.js');
+const sendMail = require('../methods/sendMail.js');
 
 const getUserObjByUserId = async (user_id) => {
   const query = `SELECT id, ${users.USER_ID}, ${users.SCHOOL_ID}, ${users.EMAIL}, ${users.USERNAME}, ${users.USER_TYPE}, ${users.CREATED_ON}, ${users.LAST_LOGIN} FROM users WHERE ${users.USER_ID} = $1 LIMIT 1`;
@@ -191,7 +195,37 @@ const getUsersByEmail = async (req, res) => {
       throw Error("Email is not valid");
     }
     const users = await getUserObjectsByEmail(email);
-    res.status(200).json(users);
+    if(users?.length !== 0){
+      res.status(200).json(users);
+    }else{
+      res.status(400).json({ error: "No user found" });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+}
+
+const forgetPasswordRequest = async (req, res) => {
+  try {
+    const { username } = req.params;
+    if(!username) throw Error("Username is not specified");
+    if(validateUsername(username) === false) throw Error("Username is not valid");
+    const user = await getUserObjFromUsername(username);
+    if(!user) throw Error("Can't find user");
+    const varification = await createOTPVarification(user?.[users_table?.USER_ID], CHANGE_PASSWORD);
+    if(!varification) throw Error("Couldn't create otp variable");
+
+    const otpToken = await createTokenForObject(varification)
+
+    const sendTo = user?.[users_table?.EMAIL];
+    const subject = 'Forget Password Request';
+    const body = `Click this link to Go on the reset password page
+      ${process.env.FRONT_END_URL}/reset_password/${otpToken}
+      And this link only be used within 24 hours
+    `;
+    // await sendMail(sendTo, subject, body);
+
+    res.status(200).json({ message: "Mail sent to your email address and it will expire within 24 hours" });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -205,5 +239,6 @@ module.exports = {
   updateUser,
   deleteUser,
   createUserByUsernameAndPassword,
-  getUsersByEmail
+  getUsersByEmail,
+  forgetPasswordRequest
 }

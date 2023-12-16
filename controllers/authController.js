@@ -11,6 +11,7 @@ const validateUsername = require('../utility/validateUsername');
 const users_table = require('../constants/users_table');
 const { getVerification } = require('../methods/verificationMethods');
 const { getUserObjFromUsername } = require('../methods/users_methods/getUserObjFromUsername');
+const { verifyTokenMethod } = require('../methods/auth_methods/verifyTokenMethod');
 
 const createToken = (user_id) => {
   const expiration = '1d'; // 1 day
@@ -84,15 +85,8 @@ const generatePasswordForNewUser = async (req, res) => {
 const verifyToken = async (req, res) => {
   try{
     const { token } = req.params;
-    if(!token) throw Error('Token is required');
-    const tokenObject = await getObjectFromToken(token);
-    if(!tokenObject) throw Error('Token is invalid');
-    const unique_id = tokenObject?.[verification_table?.UNIQUE_ID];
-    const purpost = tokenObject?.[verification_table?.PURPOSE];
-    const otp = tokenObject?.[verification_table?.OTP];
-    const getVerificationObject = await getVerification(unique_id, purpost, otp);
-    if(!getVerificationObject) throw Error("Token Verification failed");
-    res.status(200).json(tokenObject);
+    const getObj = await verifyTokenMethod(token);
+    res.status(200).json(getObj);
   }catch(error){
     res.status(400).json({ error: error.message });
   }
