@@ -223,9 +223,35 @@ const forgetPasswordRequest = async (req, res) => {
       ${process.env.FRONT_END_URL}/reset_password/${otpToken}
       And this link only be used within 24 hours
     `;
-    // await sendMail(sendTo, subject, body);
+    await sendMail(sendTo, subject, body);
 
     res.status(200).json({ message: "Mail sent to your email address and it will expire within 24 hours" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+}
+
+const changePassword = async (req, res) => {
+  try{
+    const { password, token } = req?.body;
+    if(!token) throw Error("Token is not provided");
+    if(!password) throw Error("Please enter password");
+    if(password?.length < 4 || password?.length > 16) {
+      throw Error("Password must be between 4 and 16 characters long");
+    }
+    const verificationObj = await getObjectFromToken(token);
+    if(!verificationObj) throw Error('Token verification failed');
+    if(verificationObj?.[verification_table?.PURPOSE] !== CHANGE_PASSWORD) throw Error("Token verification failed to purpose of change password");
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(password, salt);
+    const updateQuery = `UPDATE users SET ${users_table?.PASSWORD} = $1 WHERE ${users_table?.USER_ID} = $2 RETURNING *`;
+    const updateResponse = await db.query(updateQuery, [hash, verificationObj?.[verification_table?.UNIQUE_ID]]);
+    // console.log("updateResponse=>", updateResponse?.rows);
+    if(!updateResponse) throw Error("Password couldn't be updated");
+    const removeVerificationQuery = `DELETE FROM verification WHERE ${verification_table?.UNIQUE_ID} = $1 AND ${verification_table?.PURPOSE} = $2 RETURNING *`;
+    const removeVerificationResponse = await db.query(removeVerificationQuery, [verificationObj?.[verification_table?.UNIQUE_ID], verificationObj?.[verification_table?.PURPOSE]]);
+    if(!removeVerificationResponse) throw Error("Couldn't delete OTP verfication");
+    res.status(200).json({ message: "Password Updated" });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -240,5 +266,6 @@ module.exports = {
   deleteUser,
   createUserByUsernameAndPassword,
   getUsersByEmail,
-  forgetPasswordRequest
+  forgetPasswordRequest,
+  changePassword
 }
