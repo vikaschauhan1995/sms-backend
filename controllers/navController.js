@@ -14,7 +14,10 @@ const navListDetails = {
   ],
   teacher: [
     { name: 'Student Attendance', url: '/student_attendance' }
-  ]
+  ],
+  student: [
+    { name: 'My Attendance', url: '/my_attendance' },
+  ],
 };
 
 const getNavListByUserType = (req, res) => {
