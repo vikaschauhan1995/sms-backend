@@ -134,7 +134,7 @@ const createUserByUsernameAndPassword = async (req, res) => {
     const otp = tokenObject?.[verification_table?.OTP];
     const getVerificationObject = await getVerification(unique_id, purpost, otp);
     if (!getVerificationObject) throw Error("Token Verification failed");
-
+    console.log("tokenObject==>", tokenObject);
     const verificationUniqueId = tokenObject?.[verification_table?.UNIQUE_ID];
     const verificationPurpose = tokenObject?.[verification_table?.PURPOSE];
     const user_type = tokenObject?.[users_table?.USER_TYPE];
@@ -147,7 +147,7 @@ const createUserByUsernameAndPassword = async (req, res) => {
       const teacher_id = teacher?.[teacher_table?.TEACHER_ID];
       const updatedTeacher = await setUsernameByTeacherId(teacher_id, username);
       if (!updatedTeacher) throw Error("Couldn't set username to teacher");
-      const createdUser = await createUserByGivenAllDetails(school_id, email, username, password, user_type);
+      const createdUser = await createUserByGivenAllDetails(school_id, email, username, password, user_type, unique_id);
       if (!createdUser) throw Error("Couldn't find created user");
       await deleteVerification(verificationUniqueId, verificationPurpose);
       res.status(200).json(createdUser);
@@ -159,7 +159,7 @@ const createUserByUsernameAndPassword = async (req, res) => {
       const admin_id = admin?.[admin_table?.ADMIN_ID];
       const updatedAdmin = await setUsernameByAdminId(admin_id, username);
       if(!updatedAdmin) throw Error("Couldn't set username to admin");
-      const createdUser = await createUserByGivenAllDetails(school_id, email, username, password, user_type);
+      const createdUser = await createUserByGivenAllDetails(school_id, email, username, password, user_type, unique_id);
       if (!createdUser) throw Error("Couldn't find created user");
       await deleteVerification(verificationUniqueId, verificationPurpose);
       res.status(200).json(createdUser);
@@ -171,7 +171,7 @@ const createUserByUsernameAndPassword = async (req, res) => {
       const student_id = student?.[student_table?.STUDENT_ID];
       const updatedStudent = await setUsernameByStudentId(student_id, username);
       if(!updatedStudent) throw Error("Couldn't set username to student");
-      const createdUser = await createUserByGivenAllDetails(school_id, email, username, password, user_type);
+      const createdUser = await createUserByGivenAllDetails(school_id, email, username, password, user_type, unique_id);
       if (!createdUser) throw Error("Couldn't find created user");
       await deleteVerification(verificationUniqueId, verificationPurpose);
       res.status(200).json(createdUser);

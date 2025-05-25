@@ -77,6 +77,33 @@ const postStudentAttendanceByDate = async (req, res) => {
   }
 }
 
+const getMyAttendanceOfMonth = async (req, res) => {
+  try {
+    const { user_id } = req?.user;
+    const { month, year } = req.params;
+    const attendanceQuery = `SELECT 
+    id, 
+    student_id, 
+    class_id, 
+    school_id, 
+    created_by, 
+    is_present, 
+    comment, 
+    created_date::text,
+    created_on
+    FROM student_attendance WHERE student_id = $1
+    AND created_date >= '${year}-${month}-01' 
+    AND created_date < '${year}-${parseInt(month)+1}-01' ORDER BY created_date`;
+
+    const attendanceRow = await db.query(attendanceQuery, [user_id]);
+    res.status(200).json(attendanceRow.rows);
+  } catch(error) {
+    if (!res.headersSent) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+}
+
 const getClassAttendanceOfMonth = async (req, res) => {
   try {
     const { user_id, school_id } = req?.user;
@@ -192,5 +219,6 @@ module.exports = {
   getTodaysAttendanceOfClassStudent,
   postStudentAttendance,
   getClassAttendanceOfMonth,
-  postStudentAttendanceByDate
+  postStudentAttendanceByDate,
+  getMyAttendanceOfMonth
 }

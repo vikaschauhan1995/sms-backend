@@ -7,7 +7,7 @@ const { getUserObjFromUsername } = require('./getUserObjFromUsername');
 
 
 
-const createUserByGivenAllDetails = async (school_id, email, username, password, user_type) => {
+const createUserByGivenAllDetails = async (school_id, email, username, password, user_type, unique_id) => {
   if (!school_id) throw Error("School_id is required");
   if (!email) throw Error("Email is required");
   if (!username) throw Error("Username is required");
@@ -20,11 +20,10 @@ const createUserByGivenAllDetails = async (school_id, email, username, password,
   const user = await getUserObjFromUsername(username);
   if (user?.[users_table?.USERNAME]) throw Error("Username is already taken");
 
-  const user_id = uuidv4();
   const createUserQuery = `INSERT INTO users (${users_table.USER_ID}, ${users_table.SCHOOL_ID}, ${users_table.EMAIL}, ${users_table.USERNAME}, ${users_table.PASSWORD}, ${users_table.USER_TYPE}, ${users_table.IS_ACTIVE}) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING ${users_table.USER_ID}, ${users_table.SCHOOL_ID}, ${users_table.EMAIL}, ${users_table.USERNAME}, ${users_table.USER_TYPE}, ${users_table.IS_ACTIVE}, ${users_table.CREATED_ON}`;
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password, salt);
-  const createUserResponse = await db.query(createUserQuery, [user_id, school_id, email, username, hash, user_type, true]);
+  const createUserResponse = await db.query(createUserQuery, [unique_id, school_id, email, username, hash, user_type, true]);
   return createUserResponse?.rows?.[0];
 }
 
