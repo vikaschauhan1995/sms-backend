@@ -21,10 +21,9 @@ const postTeacherAttendance = async (req, res) => {
     if(typeof is_present != "boolean") throw Error('Teacher Attendance must be a boolean');
     if(!created_date) throw Error('Attendance date must be provided');
     
-    const checkTeacherAttendanceAlreadyExists = `SELECT * FROM teacher_attendance WHERE ${teacher_attendance_table?.TEACHER_ID} = $1 AND ${teacher_attendance_table?.CREATED_DATE} = $2`;
+    const checkTeacherAttendanceAlreadyExists = `SELECT * FROM teacher_attendance WHERE ${teacher_attendance_table?.TEACHER_ID} = $1 AND DATE(${teacher_attendance_table?.CREATED_DATE}) = DATE($2)`;
     // const todaysDate = getTodaysDate();
     const checkTeacherAttendanceAlreadyExistsResponse = await db.query(checkTeacherAttendanceAlreadyExists, [teacher_id, created_date]);
-    
     if(checkTeacherAttendanceAlreadyExistsResponse?.rows?.length > 0){
       const updatedAttendance = await updateAttendanceOfTeacher(teacher_id, created_date, is_present);
       res.status(200).json(updatedAttendance);

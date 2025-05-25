@@ -5,8 +5,10 @@ const teacherAttendanceOfRange = async (school_id, start_date, end_date) => {
   if (!school_id) throw Error('School Id is required');
   if (!start_date) throw Error('Start Date is required');
   if (!end_date) throw Error('End Date is required');
-  const getTeacherAttendanceQuery = `SELECT
-  DATE_TRUNC('day', created_date) AS created_date,
+
+
+  const getTeacherAttendanceQuery =`SELECT
+  to_char(DATE_TRUNC('day', created_date), 'YYYY-MM-DD') AS created_date,
   ARRAY_AGG(
     jsonb_build_object(
       'id', id,
@@ -23,10 +25,10 @@ FROM
 WHERE
   created_date >= '${start_date}' AND created_date < '${end_date}'
 GROUP BY
-  created_date
+  DATE_TRUNC('day', created_date)
 ORDER BY
-  created_date desc;
-`;
+  DATE_TRUNC('day', created_date) DESC;`
+
   // console.log("getTeacherAttendanceQuery=>", getTeacherAttendanceQuery);
   const teacherAttendanceResponse = await db.query(getTeacherAttendanceQuery, []);
   return teacherAttendanceResponse?.rows;
