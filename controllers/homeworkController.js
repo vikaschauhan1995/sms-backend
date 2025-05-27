@@ -1,5 +1,7 @@
 const homework_table = require("../constants/homework_table");
+const student_table = require("../constants/student_table");
 const db = require("../db");
+const { getStudentObjByStudentId } = require("../methods/student_methods/getStudentObjByStudentId");
 
 const saveHomework = async (req, res) => {
   try {
@@ -39,7 +41,32 @@ const getHomeworkByClassIdAndDate = async (req, res) => {
             FROM homework_assignment
             WHERE ${homework_table.CLASS_ID} = $1 AND ${homework_table.CREATED_DATE} = $2::date AND ${homework_table.SCHOOL_ID} = $3`;
         const insertedHomework = await db.query(query, [ class_id, created_date, school_id]);
-        console.log("query=>", query);
+        res.status(200).json(insertedHomework.rows);
+      } catch (error) {
+        res.status(400).json({ error: error.message });
+      }
+}
+
+const getHomeworkByClassIdForStudent = async (req, res) => {
+    try {
+        const { created_date } = req.params;
+        const { user_id, school_id } = req?.user;
+        const student = await getStudentObjByStudentId(user_id);
+        const class_id = student?.[student_table?.CLASS_ID];
+        console.log("created_date", class_id);
+
+        if (!class_id) throw Error("couldn't find your class_id");
+        if (!created_date) throw Error("Created date must be provided");
+        if (!user_id) throw Error("user_id must be provided");
+        if (!school_id) throw Error("school_id must be provided");
+    
+        const query = `SELECT 
+            id, ${homework_table.TEACHER_ID}, ${homework_table.CLASS_ID}, ${homework_table.TITLE}, ${homework_table.DESCRIPTION}, ${homework_table.CREATED_BY},
+            TO_CHAR(${homework_table.CREATED_DATE}, 'YYYY-MM-DD') AS ${homework_table.CREATED_DATE},
+            ${homework_table.CREATED_ON}
+            FROM homework_assignment
+            WHERE ${homework_table.CLASS_ID} = $1 AND ${homework_table.CREATED_DATE} = $2::date AND ${homework_table.SCHOOL_ID} = $3`;
+        const insertedHomework = await db.query(query, [ class_id, created_date, school_id]);
         res.status(200).json(insertedHomework.rows);
       } catch (error) {
         res.status(400).json({ error: error.message });
@@ -87,5 +114,6 @@ module.exports = {
   saveHomework,
   getHomeworkByClassIdAndDate,
   updateHomework,
-  deleteHomeworkById
+  deleteHomeworkById,
+  getHomeworkByClassIdForStudent
 };

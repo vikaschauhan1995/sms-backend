@@ -18,6 +18,7 @@ const navListDetails = {
   ],
   student: [
     { name: 'My Attendance', url: '/my_attendance' },
+    { name: 'Home Work', url: '/home_work'}
   ],
 };
 
