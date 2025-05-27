@@ -16,8 +16,7 @@ const db = new Client({
   connectionString: connectionString,
   ssl: {
     rejectUnauthorized: true // Required for Neon.tech
-  },
-  idleTimeoutMillis: 10000,
+  }
 });
 
 module.exports = db;

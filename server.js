@@ -1,5 +1,5 @@
 if (process.env.NODE_ENV === 'development') {
-  require('dotenv').config({ path: '../SECRET/.dev.env' });
+  require('dotenv').config({ path: './.dev.env' });
 }
 const express = require('express');
 const cors = require('cors');
