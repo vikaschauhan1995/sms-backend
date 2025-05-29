@@ -173,7 +173,7 @@ CREATE TABLE homework_assignment (
 INSERT INTO session_year (year, session_name) VALUES (2023, '2023-2024');
 INSERT INTO session_year (year, session_name) VALUES (2024, '2024-2025');
 INSERT INTO session_year (year, session_name) VALUES (2025, '2025-2026');
--- INSERT INTO users (user_id, school_id, email, username, password, user_type, is_active) VALUES ('123456789', '', 'email@gmail.com', 'root', 'bcryptPassword', 'root', true);
+-- INSERT INTO users (user_id, school_id, email, username, password, user_type, is_active) VALUES ('123456789', '', 'vikas.bb@gmail.com', '', '$ArNCkXcnqKgDlFNQB6T0tcG', 'root', true);
 
 -- Commit the transaction
 COMMIT;

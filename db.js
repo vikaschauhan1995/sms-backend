@@ -20,5 +20,3 @@ const db = new Client({
 });
 
 module.exports = db;
-
-// postgresql://neondb_owner:npg_y@ep-lucky-recipe-a178qb8t.ap-southeast-1.aws.neon.tech/sms?sslmode=require
