@@ -1,11 +1,11 @@
 const getObjectFromToken = require("../methods/getObjectFromToken");
 
 const tokenValidation = async (req, res, next) => {
-  const { authorization } = req.headers;
-  if (!authorization) {
-    throw Error("Token no available");
-  }
   try {
+    const { authorization } = req.headers;
+    if (!authorization) {
+      throw Error("Token no available");
+    }
     const token = authorization?.split(' ')[1];
     const user = getObjectFromToken(token);
     const { user_id } = user;
