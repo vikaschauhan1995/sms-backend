@@ -1,12 +1,15 @@
 const db = require("../../db");
 
-
 const getSessionYearList = async () => {
-  const getSessionQuery = `SELECT * FROM session_year`;
-  const getSessionResponse = await db.query(getSessionQuery);
-  return getSessionResponse?.rows
-}
+  try {
+    const getSessionQuery = `SELECT * FROM session_year`;
+    const getSessionResponse = await db.query(getSessionQuery);
+    return getSessionResponse?.rows;
+  } catch (error) {
+    throw Error(error.message);
+  }
+};
 
 module.exports = {
-  getSessionYearList
-}
+  getSessionYearList,
+};

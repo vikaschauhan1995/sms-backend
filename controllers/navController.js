@@ -10,7 +10,7 @@ const navListDetails = {
     { name: 'Teacher Attendance', url: '/teacher_attendance' },
     { name: 'Class Attendance', url: '/class_attendance' },
     { name: 'Class', url: '/class' },
-    // { name: 'Fee', url: '/student_fee'}
+    { name: 'Fee', url: '/fee'}
   ],
   teacher: [
     { name: 'Student Attendance', url: '/student_attendance' },
@@ -18,7 +18,8 @@ const navListDetails = {
   ],
   student: [
     { name: 'My Attendance', url: '/my_attendance' },
-    { name: 'Home Work', url: '/home_work'}
+    { name: 'Home Work', url: '/home_work'},
+    { name: 'Fee', url: '/fee'}
   ],
 };
 

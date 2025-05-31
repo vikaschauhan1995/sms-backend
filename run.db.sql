@@ -170,6 +170,26 @@ CREATE TABLE homework_assignment (
     created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+
+CREATE TABLE fee_transactions (
+    id SERIAL PRIMARY KEY,
+    transaction_id VARCHAR(100) UNIQUE NOT NULL,
+    school_id VARCHAR(255) NOT NULL,
+    month INT NOT NULL,
+    class_id VARCHAR(255) NOT NULL,
+    class_name VARCHAR(255) NOT NULL,
+    student_id VARCHAR(255) NOT NULL,
+    student_name VARCHAR(255) NOT NULL,
+    roll_number INT NOT NULL,
+    fee_amount INT NOT NULL,
+    amount_paid INT NOT NULL,
+    payment_date DATE NOT NULL,
+    description TEXT,
+    created_by VARCHAR(255) NOT NULL,
+    created_date DATE DEFAULT CURRENT_DATE,
+    created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 INSERT INTO session_year (year, session_name) VALUES (2023, '2023-2024');
 INSERT INTO session_year (year, session_name) VALUES (2024, '2024-2025');
 INSERT INTO session_year (year, session_name) VALUES (2025, '2025-2026');

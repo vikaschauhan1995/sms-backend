@@ -1,4 +1,4 @@
-const { Client } = require('pg');
+const { Client, Pool } = require('pg');
 
 // const db = new Client({
 //   user: process.env.POSTGRES_USERNAME,
@@ -12,11 +12,16 @@ const { Client } = require('pg');
 
 const connectionString = process.env.NEON_POSTGRES_HOST;
 
-const db = new Client({
+const db = new Pool({
   connectionString: connectionString,
   ssl: {
     rejectUnauthorized: true // Required for Neon.tech
   }
 });
+
+// Optional: Add logging for pool events for better debugging (as suggested previously)
+// db.on('error', (err, client) => {
+//   console.error('Unexpected error on idle client', err);
+// });
 
 module.exports = db;
