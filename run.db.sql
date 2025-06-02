@@ -160,7 +160,8 @@ CREATE TABLE student_attendance(
 
 CREATE TABLE homework_assignment (
     id SERIAL PRIMARY KEY,
-    teacher_id VARCHAR(255) NOT NULL REFERENCES teacher(teacher_id),
+    teacher_id VARCHAR(255) REFERENCES teacher(teacher_id),
+    admin_id VARCHAR(255) REFERENCES admin(admin_id),
     school_id VARCHAR(255) NOT NULL,
     class_id int NOT NULL REFERENCES classes(id),
     title VARCHAR(255) NOT NULL,
