@@ -215,10 +215,51 @@ const getClassAttendanceOfMonth = async (req, res) => {
 }
 
 
+const getStudentAttendanceSummary = async (req, res) => {
+  try {
+    const { school_id } = req?.user;
+    const { year } = req.params;
+    if (!school_id) throw Error('School Id is required')
+    const query = `SELECT
+        s.school_id,
+        c.class_name,
+        c.section,
+        COUNT(s.student_id) AS total_students_in_class,
+        SUM(CASE WHEN sa.is_present = TRUE THEN 1 ELSE 0 END) AS present_students_count,
+        SUM(CASE WHEN sa.is_present = FALSE THEN 1 ELSE 0 END) AS absent_students_count,
+        SUM(CASE WHEN sa.id IS NULL THEN 1 ELSE 0 END) AS no_record_students_count
+      FROM
+        classes c
+      JOIN
+        student s ON c.id = s.class_id AND c.school_id = s.school_id
+      LEFT JOIN
+        student_attendance sa ON s.student_id = sa.student_id
+                            AND sa.school_id = c.school_id
+                            AND sa.created_date = CURRENT_DATE
+      WHERE
+        c.school_id = $1
+        AND c.created_year = $2
+      GROUP BY
+        s.school_id,
+        c.class_name,
+        c.section
+      ORDER BY
+        c.class_name,
+        c.section;`;
+      const response = await db.query(query, [school_id, year]);
+      res.status(200).json(response.rows);
+  } catch (error) {
+    if (!res.headersSent) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+};
+
 module.exports = {
   getTodaysAttendanceOfClassStudent,
   postStudentAttendance,
   getClassAttendanceOfMonth,
   postStudentAttendanceByDate,
-  getMyAttendanceOfMonth
+  getMyAttendanceOfMonth,
+  getStudentAttendanceSummary
 }

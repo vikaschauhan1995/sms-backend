@@ -124,11 +124,38 @@ const postTeacherAttendanceByDate = async (req, res) => {
   }
 }
 
+const getTeacherAttendanceSummary = async (req, res) => {
+  try {
+    const { school_id } = req?.user;
+    if (!school_id) throw Error('School Id is required')
+    const query = `SELECT
+        ta.school_id,
+        SUM(CASE WHEN ta.is_present = TRUE THEN 1 ELSE 0 END) AS present_teachers_count,
+        SUM(CASE WHEN ta.is_present = FALSE THEN 1 ELSE 0 END) AS absent_teachers_count,
+        SUM(CASE WHEN ta.is_present = TRUE THEN 0 ELSE 1 END) AS not_available_teachers_count -- This is equivalent to absent_teachers_count if false means not available
+      FROM
+        teacher_attendance ta
+      JOIN
+        teacher t ON ta.teacher_id = t.teacher_id AND ta.school_id = t.school_id
+      WHERE
+        ta.school_id = $1 AND ta.created_date = CURRENT_DATE -- Replace 'YOUR_SCHOOL_ID' with the actual school ID
+      GROUP BY
+      ta.school_id;`;
+      const response = await db.query(query, [school_id]);
+      res.status(200).json(response.rows);
+  } catch (error) {
+    if (!res.headersSent) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+};
+
 
 module.exports = {
   postTeacherAttendance,
   updateTeacherAttendanceController,
   getTeacherAttendanceByDateAndSchoolId,
   getTeacherAttendanceOfMonth,
-  postTeacherAttendanceByDate
+  postTeacherAttendanceByDate,
+  getTeacherAttendanceSummary
 };

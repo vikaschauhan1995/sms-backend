@@ -1,5 +1,5 @@
 const express = require('express');
-const { getTodaysAttendanceOfClassStudent, postStudentAttendance, getClassAttendanceOfMonth, postStudentAttendanceByDate, getMyAttendanceOfMonth } = require('../controllers/studentAttendanceController');
+const { getTodaysAttendanceOfClassStudent, postStudentAttendance, getClassAttendanceOfMonth, postStudentAttendanceByDate, getMyAttendanceOfMonth, getStudentAttendanceSummary } = require('../controllers/studentAttendanceController');
 const { student_attendance_table } = require('../constants/student_attendance_table');
 const { session_year_table } = require('../constants/session_year_table');
 const router = express.Router();
@@ -10,5 +10,6 @@ router.get(`/${session_year_table?.YEAR}/:${session_year_table?.YEAR}/class_id/:
 router.post('/', postStudentAttendance);
 router.post('/date', postStudentAttendanceByDate);
 router.get(`/${session_year_table?.YEAR}/:${session_year_table?.YEAR}/month/:month`, getMyAttendanceOfMonth);
+router.get(`/${session_year_table?.YEAR}/:${session_year_table?.YEAR}/summary`, getStudentAttendanceSummary);
 
 module.exports = router;
