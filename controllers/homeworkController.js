@@ -36,12 +36,6 @@ const getHomeworkByClassIdAndDate = async (req, res) => {
         if (!user_id) throw Error("user_id must be provided");
         if (!school_id) throw Error("school_id must be provided");
     
-        // const query = `SELECT 
-        //     id, ${homework_table.TEACHER_ID}, ${homework_table.ADMIN_ID}, ${homework_table.CLASS_ID}, ${homework_table.TITLE}, ${homework_table.DESCRIPTION}, ${homework_table.CREATED_BY},
-        //     TO_CHAR(${homework_table.CREATED_DATE}, 'YYYY-MM-DD') AS ${homework_table.CREATED_DATE},
-        //     ${homework_table.CREATED_ON}
-        //     FROM homework_assignment_q
-        //     WHERE ${homework_table.CLASS_ID} = $1 AND ${homework_table.CREATED_DATE} = $2::date AND ${homework_table.SCHOOL_ID} = $3`;
         const query = `
           SELECT
             ha.id,

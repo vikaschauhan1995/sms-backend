@@ -80,7 +80,10 @@ const saveStudentFee = async (req, res) => {
             description,
             user_id
         ]);
-        res.status(200).json(insertResponse?.rows[0]);
+        res.status(200).json({
+            message:'Fee transaction saved successfully',
+            data:insertResponse?.rows[0]
+        });
     }catch(error){
         res.status(400).json({ error: error.message });
     }

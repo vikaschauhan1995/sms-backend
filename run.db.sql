@@ -160,10 +160,10 @@ CREATE TABLE student_attendance(
 
 CREATE TABLE homework_assignment (
     id SERIAL PRIMARY KEY,
-    teacher_id VARCHAR(255) REFERENCES teacher(teacher_id),
-    admin_id VARCHAR(255) REFERENCES admin(admin_id),
+    teacher_id VARCHAR(255) REFERENCES teacher(teacher_id) ON DELETE SET NULL,
+    admin_id VARCHAR(255) REFERENCES admin(admin_id) ON DELETE SET NULL,
     school_id VARCHAR(255) NOT NULL,
-    class_id int NOT NULL REFERENCES classes(id),
+    class_id INT REFERENCES classes(id) ON DELETE SET NULL, -- Changed to be nullable to support ON DELETE SET NULL
     title VARCHAR(255) NOT NULL,
     description TEXT,
     created_by VARCHAR(255) NOT NULL,
